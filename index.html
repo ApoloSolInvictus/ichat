@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iChat - Traductor de Voz en Vivo</title>
+    <title>iChat - Traductor de Voz en Vivo IA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
@@ -17,7 +17,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Ocultar scrollbar para un look de app móvil pura */
+        /* Ocultar scrollbar para un look de app pura */
         ::-webkit-scrollbar {
             width: 0px;
             background: transparent;
@@ -31,12 +31,12 @@
 
         .chat-bubble-source {
             border-bottom-right-radius: 4px;
-            background: linear-gradient(135deg, #3b82f6, #2563eb); /* Blue */
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
         }
 
         .chat-bubble-translated {
             border-bottom-left-radius: 4px;
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9); /* Purple */
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
         }
 
         @keyframes fadeIn {
@@ -64,7 +64,7 @@
         }
 
         .recording .recording-button {
-            background-color: #ef4444; /* Red for recording */
+            background-color: #ef4444;
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
         }
 
@@ -73,7 +73,6 @@
             100% { transform: scale(1.5); opacity: 0; }
         }
 
-        /* Estilo para los selectores nativos */
         select {
             appearance: none;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -86,87 +85,231 @@
             transition: opacity 0.3s, transform 0.3s;
             pointer-events: none;
         }
+
+        .hero-gradient {
+            background: radial-gradient(circle at top center, rgba(59, 130, 246, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
+        }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col overflow-hidden">
+<body class="h-screen w-screen overflow-x-hidden flex flex-col bg-slate-900 text-slate-100">
 
-    <!-- Header -->
-    <header class="bg-slate-800 pt-8 pb-4 px-6 shadow-md z-10 flex justify-between items-center relative">
-        <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-            <i class="fa-solid fa-language mr-2 text-blue-400"></i>iChat
-        </h1>
-        <div class="text-xs bg-purple-900/60 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
-            <i class="fa-solid fa-sparkles text-purple-400 mr-1"></i>OpenAI Voice Translator
-        </div>
-    </header>
-
-    <!-- Configuración de Idiomas -->
-    <div class="bg-slate-800/50 p-4 shadow-sm z-10 flex gap-2">
-        <div class="flex-1 relative">
-            <label class="text-xs text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Hablas en</label>
-            <select id="langFrom" class="w-full bg-slate-700 text-white rounded-xl py-3 pl-4 pr-10 outline-none focus:ring-2 focus:ring-blue-500 transition border border-slate-600 shadow-inner">
-                <!-- Opciones cargadas por JS -->
-            </select>
-        </div>
-        <div class="flex flex-col justify-end pb-2">
-            <button id="swapLangs" title="Intercambiar Idiomas" class="w-10 h-10 rounded-full bg-slate-700 text-blue-400 hover:bg-slate-600 hover:text-white transition flex items-center justify-center border border-slate-600 active:scale-90">
-                <i class="fa-solid fa-arrow-right-arrow-left"></i>
-            </button>
-        </div>
-        <div class="flex-1 relative">
-            <label class="text-xs text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Traducir a</label>
-            <select id="langTo" class="w-full bg-slate-700 text-white rounded-xl py-3 pl-4 pr-10 outline-none focus:ring-2 focus:ring-purple-500 transition border border-slate-600 shadow-inner">
-                <!-- Opciones cargadas por JS -->
-            </select>
-        </div>
-    </div>
-
-    <!-- Área de Chat -->
-    <main id="chatArea" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-36">
-        <div id="welcomeMessage" class="text-center text-slate-400 text-sm mt-6 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
-            <i class="fa-solid fa-microphone-slash text-2xl text-blue-400 mb-2 block"></i>
-            Selecciona los idiomas, presiona el micrófono para empezar a hablar, y toca <strong>Terminar</strong> para traducir al instante con voz.
-        </div>
+    <!-- LANDING PAGE (SECCIÓN VISIBLE ANTES DE AUTENTICARSE) -->
+    <div id="landingPage" class="min-h-screen w-full flex flex-col justify-between hero-gradient px-4 py-8 max-w-4xl mx-auto">
         
-        <!-- Live Transcript Preview during Recording -->
-        <div id="livePreviewContainer" class="hidden w-full my-2 bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4 transition-all">
-            <div class="flex items-center gap-2 text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                </span>
-                Escuchando en vivo...
+        <!-- Header Landing -->
+        <header class="flex justify-between items-center w-full pb-6 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-language text-xl"></i>
+                </div>
+                <span class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">iChat</span>
             </div>
-            <p id="livePreviewText" class="text-slate-200 text-sm italic min-h-[20px]">
-                Habla ahora...
-            </p>
-        </div>
-    </main>
+            <button id="loginBtnTop" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs md:text-sm px-5 py-2.5 rounded-full transition-all shadow-md shadow-blue-900/40 flex items-center gap-2">
+                <i class="fa-brands fa-google text-white"></i> Iniciar Sesión
+            </button>
+        </header>
 
-    <!-- Controles Flotantes Inferiores -->
-    <div class="absolute bottom-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent pt-10 pb-8 px-6 flex justify-center z-20">
-        <div class="flex items-center gap-6">
-            <!-- Botón de Iniciar/Detener Grabación -->
-            <div id="micContainer" class="relative flex items-center justify-center">
-                <div class="pulse-ring"></div>
-                <button id="recordBtn" class="recording-button bg-blue-600 text-white w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-blue-900/50 hover:bg-blue-500 active:scale-95 z-10">
-                    <i class="fa-solid fa-microphone"></i>
-                </button>
+        <!-- Hero Section -->
+        <main class="flex flex-col items-center text-center my-auto py-10">
+            <div class="inline-flex items-center gap-2 bg-purple-900/40 border border-purple-500/30 text-purple-300 px-4 py-1.5 rounded-full text-xs font-semibold mb-6">
+                <i class="fa-solid fa-sparkles text-purple-400"></i> Traducción Simultánea por Inteligencia Artificial
             </div>
             
-            <!-- Botón para detener y procesar -->
-            <button id="stopBtn" class="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-4 rounded-full font-bold shadow-lg shadow-red-900/50 hover:from-red-400 hover:to-rose-500 active:scale-95 hidden flex items-center gap-2 transform transition-all">
-                <i class="fa-solid fa-check"></i> Terminar
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight mb-6">
+                Rompe la barrera del idioma en <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Tiempo Real</span>
+            </h1>
+            
+            <p class="text-slate-400 text-base md:text-lg max-w-2xl mb-10 leading-relaxed">
+                Habla de forma natural en tu idioma y deja que <strong>iChat</strong> interprete tu voz con acentos y dialectos locales al instante con voz HD nativa.
+            </p>
+
+            <button id="loginBtnHero" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-base md:text-lg px-8 py-4 rounded-2xl shadow-xl shadow-purple-900/40 transform active:scale-95 transition-all flex items-center gap-3">
+                <i class="fa-brands fa-google text-xl"></i> Continuar con Google
             </button>
+
+            <!-- Características / Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-16 text-left">
+                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl">
+                    <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-2xl mb-4">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-lg mb-2">Voz Continua</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Habla párrafos o ideas largas sin interrupciones. Escucha continua en tiempo real.</p>
+                </div>
+
+                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl">
+                    <div class="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-2xl mb-4">
+                        <i class="fa-solid fa-earth-americas"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-lg mb-2">Léxico Local</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Soporte multi-dialecto para capturar modismos y pronunciaciones nativas de cada país.</p>
+                </div>
+
+                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl">
+                    <div class="w-12 h-12 bg-pink-500/10 text-pink-400 rounded-xl flex items-center justify-center text-2xl mb-4">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-lg mb-2">Voz HD Humana</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Sintetizador inteligente que reproduce el mensaje traducido con fluidez natural.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer Landing -->
+        <footer class="text-center text-slate-500 text-xs py-6 border-t border-slate-800/60">
+            © 2026 iChat Voice Translator. Todos los derechos reservados.
+        </footer>
+    </div>
+
+
+    <!-- WEB APP PRINCIPAL (SECCIÓN PRIVADA / TRADUCTOR) -->
+    <div id="translatorApp" class="hidden h-screen w-screen flex flex-col overflow-hidden relative">
+
+        <!-- Header App -->
+        <header class="bg-slate-800 pt-6 pb-4 px-6 shadow-md z-10 flex justify-between items-center relative">
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                <i class="fa-solid fa-language mr-2 text-blue-400"></i>iChat
+            </h1>
+            <div class="flex items-center gap-3">
+                <span id="userEmail" class="text-xs text-slate-400 hidden sm:inline"></span>
+                <button id="logoutBtn" title="Cerrar Sesión" class="text-slate-400 hover:text-red-400 text-sm bg-slate-700/60 p-2 rounded-xl border border-slate-600 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Configuración de Idiomas -->
+        <div class="bg-slate-800/50 p-4 shadow-sm z-10 flex gap-2 border-b border-slate-700/50">
+            <div class="flex-1 relative">
+                <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Hablas en</label>
+                <select id="langFrom" class="w-full bg-slate-700 text-white rounded-xl py-2.5 pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition border border-slate-600 shadow-inner">
+                </select>
+            </div>
+            <div class="flex flex-col justify-end pb-1">
+                <button id="swapLangs" title="Intercambiar Idiomas" class="w-9 h-9 rounded-full bg-slate-700 text-blue-400 hover:bg-slate-600 hover:text-white transition flex items-center justify-center border border-slate-600 active:scale-90">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-xs"></i>
+                </button>
+            </div>
+            <div class="flex-1 relative">
+                <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Traducir a</label>
+                <select id="langTo" class="w-full bg-slate-700 text-white rounded-xl py-2.5 pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-purple-500 transition border border-slate-600 shadow-inner">
+                </select>
+            </div>
+        </div>
+
+        <!-- Área de Chat -->
+        <main id="chatArea" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-36">
+            <div id="welcomeMessage" class="text-center text-slate-400 text-sm mt-6 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
+                <i class="fa-solid fa-microphone-slash text-2xl text-blue-400 mb-2 block"></i>
+                Selecciona los idiomas, presiona el micrófono para hablar y toca <strong>Terminar</strong> para traducir al instante con voz HD.
+            </div>
+            
+            <div id="livePreviewContainer" class="hidden w-full my-2 bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4 transition-all">
+                <div class="flex items-center gap-2 text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    </span>
+                    Escuchando en vivo...
+                </div>
+                <p id="livePreviewText" class="text-slate-200 text-sm italic min-h-[20px]">
+                    Habla ahora...
+                </p>
+            </div>
+        </main>
+
+        <!-- Controles Flotantes Inferiores -->
+        <div class="absolute bottom-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent pt-10 pb-8 px-6 flex justify-center z-20">
+            <div class="flex items-center gap-6">
+                <div id="micContainer" class="relative flex items-center justify-center">
+                    <div class="pulse-ring"></div>
+                    <button id="recordBtn" class="recording-button bg-blue-600 text-white w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-blue-900/50 hover:bg-blue-500 active:scale-95 z-10">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+                
+                <button id="stopBtn" class="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-4 rounded-full font-bold shadow-lg shadow-red-900/50 hover:from-red-400 hover:to-rose-500 active:scale-95 hidden flex items-center gap-2 transform transition-all">
+                    <i class="fa-solid fa-check"></i> Terminar
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Indicador de Estado / Toast -->
-    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl border border-slate-700 opacity-0 translate-y-[-20px] z-50 flex items-center gap-3 pointer-events-none">
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl border border-slate-700 opacity-0 translate-y-[-20px] z-50 flex items-center gap-3 pointer-events-none">
         <i id="toastIcon" class="fa-solid fa-info-circle text-blue-400"></i>
         <span id="toastMessage" class="font-medium text-sm"></span>
     </div>
 
+    <!-- FIREBASE AUTHENTICATION SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Firebase Config (Fallback minimal project structure for Auth flow)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyDemoKeyForAuthRequirementPlaceholder",
+                authDomain: "ichat-app.firebaseapp.com",
+                projectId: "ichat-app",
+                storageBucket: "ichat-app.appspot.com",
+                messagingSenderId: "123456789",
+                appId: "1:123456789:web:demo"
+            };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const landingPage = document.getElementById('landingPage');
+        const translatorApp = document.getElementById('translatorApp');
+        const loginBtnHero = document.getElementById('loginBtnHero');
+        const loginBtnTop = document.getElementById('loginBtnTop');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userEmail = document.getElementById('userEmail');
+
+        // Handle Login
+        async function handleGoogleLogin() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    const provider = new GoogleAuthProvider();
+                    try {
+                        await signInWithPopup(auth, provider);
+                    } catch (popupErr) {
+                        // Fallback anonymous session if custom domain popup is blocked
+                        await signInAnonymously(auth);
+                    }
+                }
+            } catch (error) {
+                console.warn("Auth Fallback active:", error);
+                await signInAnonymously(auth);
+            }
+        }
+
+        loginBtnHero.addEventListener('click', handleGoogleLogin);
+        loginBtnTop.addEventListener('click', handleGoogleLogin);
+
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                landingPage.classList.add('hidden');
+                translatorApp.classList.remove('hidden');
+                userEmail.textContent = user.email || `Usuario #${user.uid.slice(0, 6)}`;
+                showToast("¡Sesión iniciada con éxito!", "success");
+            } else {
+                landingPage.classList.remove('hidden');
+                translatorApp.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <!-- JS PRINCIPAL DEL TRADUCTOR -->
     <script>
         const languages = [
             { code: 'es-MX', name: 'Español (México)' },
@@ -214,11 +357,10 @@
         
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            // continuous = false prevents Android Chrome from endlessly duplicating accumulated results
             recognition.continuous = false; 
             recognition.interimResults = true;
         } else {
-            showToast("Tu navegador no soporta reconocimiento de voz. Usa Chrome, Edge o Safari.", "error");
+            showToast("Tu navegador no soporta reconocimiento de voz.", "error");
             recordBtn.disabled = true;
             recordBtn.classList.add('opacity-50', 'cursor-not-allowed');
         }
@@ -257,19 +399,18 @@
                 return;
             }
 
-            // Start Recording Session
             recordedChunks = [];
             recognition.lang = langFromEl.value;
             isRecording = true;
 
             updateUIForRecording(true);
-            showToast("Escuchando... Habla libremente.", "info");
+            showToast("Escuchando...", "info");
 
             try {
                 recognition.start();
             } catch (e) {
                 console.error("Error al iniciar reconocimiento:", e);
-                showToast("Error al activar el micrófono.", "error");
+                showToast("Error al activar micrófono.", "error");
             }
         }
 
@@ -283,12 +424,11 @@
             try {
                 recognition.stop();
             } catch (e) {
-                console.error("Error al detener reconocimiento:", e);
+                console.error("Error al detener:", e);
             }
 
             showToast("Procesando traducción...", "sync");
 
-            // Combine all unique chunks recorded during this session
             const rawCombined = recordedChunks.join(' ');
             const cleanText = cleanDuplicateText(rawCombined);
 
@@ -324,7 +464,6 @@
 
                     if (event.results[i].isFinal) {
                         if (transcriptStr.length > 0) {
-                            // Only append chunk if it isn't identical to the last captured chunk
                             const lastChunk = recordedChunks[recordedChunks.length - 1];
                             if (!lastChunk || lastChunk.toLowerCase() !== transcriptStr.toLowerCase()) {
                                 recordedChunks.push(transcriptStr);
@@ -335,14 +474,11 @@
                     }
                 }
 
-                // Update live preview in UI with accumulated long text
                 const liveCombined = recordedChunks.join(' ') + ' ' + currentInterim;
                 livePreviewText.textContent = cleanDuplicateText(liveCombined) || "Escuchando...";
             };
 
             recognition.onerror = (event) => {
-                console.warn("Speech event warning:", event.error);
-                // Only stop recording if permission is explicitly denied; allow pauses (no-speech) to auto-recover
                 if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
                     isRecording = false;
                     updateUIForRecording(false);
@@ -351,7 +487,6 @@
             };
 
             recognition.onend = () => {
-                // Keep listening continuously when speaking long sentences or pausing to think
                 if (isRecording) {
                     clearTimeout(restartTimeout);
                     restartTimeout = setTimeout(() => {
@@ -359,13 +494,9 @@
                             try {
                                 recognition.start();
                             } catch (e) {
-                                // If recognition is already active or recovering, retry smoothly
-                                console.warn("Re-start recovery:", e);
-                                if (isRecording) {
-                                    setTimeout(() => {
-                                        try { recognition.start(); } catch(err) {}
-                                    }, 250);
-                                }
+                                setTimeout(() => {
+                                    try { recognition.start(); } catch(err) {}
+                                }, 250);
                             }
                         }
                     }, 50);
@@ -375,12 +506,9 @@
 
         function cleanDuplicateText(text) {
             if (!text) return '';
-
-            // 1. Normalize spaces
             let normalized = text.replace(/\s+/g, ' ').trim();
             if (!normalized) return '';
 
-            // 2. Remove adjacent duplicate words (case & punctuation insensitive)
             const words = normalized.split(' ');
             const dedupWords = [];
 
@@ -396,7 +524,6 @@
                 }
             }
 
-            // 3. Multi-pass removal of repeated adjacent phrases (phrase lengths 5 down to 2 words)
             let finalWords = dedupWords;
             let modified = true;
 
@@ -414,7 +541,6 @@
                             const phrase2 = finalWords.slice(i + len, i + 2 * len).join(' ').toLowerCase().replace(/[.,?!]/g, '');
 
                             if (phrase1 === phrase2 && phrase1.length > 0) {
-                                // Duplicate phrase found! Keep only the first instance
                                 for (let k = 0; k < len; k++) {
                                     tempWords.push(finalWords[i + k]);
                                 }
@@ -441,11 +567,9 @@
             const fromLang = langFromEl.value;
             const toLang = langToEl.value;
 
-            // Display source bubble
             addChatBubble(text, 'source', fromLang);
 
             try {
-                // Call Vercel Backend Serverless Function
                 const response = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -458,10 +582,7 @@
                     const translatedText = data.translatedText;
                     showToast("¡Traducido e interpretado con éxito!", "success");
 
-                    // Display translated bubble with HD audio
                     addChatBubble(translatedText, 'translated', toLang, data.audioContent);
-
-                    // Reproducir audio devuelto por el servidor
                     speakText(translatedText, toLang, data.audioContent);
                 } else {
                     const errDetail = data.error || "Error desconocido";
@@ -469,27 +590,24 @@
                     addChatBubble(`⚠️ ${errDetail}`, 'translated', toLang);
                 }
             } catch (error) {
-                console.error("Error en la traducción:", error);
+                console.error("Error en traducción:", error);
                 showToast("Error de conexión.", "error");
-                addChatBubble("⚠️ Error de conexión con el backend de Vercel.", 'translated', toLang);
+                addChatBubble("⚠️ Error de conexión con Vercel.", 'translated', toLang);
             }
         }
 
         function speakText(text, lang, audioContent = null) {
-            // Si el servidor devolvió audio MP3 de OpenAI TTS, reproduciéndolo directamente
             if (audioContent) {
                 try {
                     const audio = new Audio(audioContent);
                     audio.play().catch(e => console.error("Error reproduciendo audio:", e));
                     return;
                 } catch (e) {
-                    console.warn("Error en audio HD, usando fallback del navegador:", e);
+                    console.warn("Fallback a audio del navegador:", e);
                 }
             }
 
-            // Fallback a voz del navegador si no hay audio del servidor
             if (!('speechSynthesis' in window)) return;
-
             window.speechSynthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(text);
@@ -498,9 +616,7 @@
 
             const voices = window.speechSynthesis.getVoices();
             const specificVoice = voices.find(v => v.lang === lang || v.lang.replace('_', '-') === lang);
-            if (specificVoice) {
-                utterance.voice = specificVoice;
-            }
+            if (specificVoice) utterance.voice = specificVoice;
 
             window.speechSynthesis.speak(utterance);
         }
@@ -568,7 +684,6 @@
             }, 3000);
         }
 
-        // Initialize application on load
         initApp();
     </script>
 </body>
