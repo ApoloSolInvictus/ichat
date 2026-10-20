@@ -49,8 +49,33 @@ export default async function handler(req, res) {
     // Extraemos solo el texto limpio
     const translatedText = data.choices[0].message.content.trim();
 
-    // Respondemos con éxito a tu HTML
-    res.status(200).json({ translatedText });
+    let audioContent = null;
+    try {
+      const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'tts-1',
+          input: translatedText,
+          voice: 'nova', // Opciones de voces hiperrealistas: 'nova', 'alloy', 'shimmer', 'echo', 'fable', 'onyx'
+          response_format: 'mp3'
+        })
+      });
+
+      if (ttsResponse.ok) {
+        const audioBuffer = await ttsResponse.arrayBuffer();
+        const base64Audio = Buffer.from(audioBuffer).toString('base64');
+        audioContent = `data:audio/mp3;base64,${base64Audio}`;
+      }
+    } catch (ttsError) {
+      console.warn('Error generando voz OpenAI TTS, fallback activado:', ttsError);
+    }
+
+    // Respondemos con la traducción y el audio HD
+    res.status(200).json({ translatedText, audioContent });
 
   } catch (error) {
     console.error('Error interno:', error);
