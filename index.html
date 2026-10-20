@@ -448,13 +448,13 @@
 
                 if (response.ok && data.translatedText) {
                     const translatedText = data.translatedText;
-                    showToast("¡Traducido por OpenAI!", "success");
+                    showToast("¡Traducido y hablado en voz HD!", "success");
 
-                    // Display translated bubble
-                    addChatBubble(translatedText, 'translated', toLang);
+                    // Display translated bubble with HD audio
+                    addChatBubble(translatedText, 'translated', toLang, data.audioContent);
 
-                    // Speak out translated message
-                    speakText(translatedText, toLang);
+                    // Reproducir audio realista devuelto por el servidor
+                    speakText(translatedText, toLang, data.audioContent);
                 } else {
                     throw new Error(data.error || "Respuesta inválida del servidor");
                 }
@@ -465,15 +465,26 @@
             }
         }
 
-        function speakText(text, lang) {
+        function speakText(text, lang, audioContent = null) {
+            // Si el servidor devolvió audio MP3 de OpenAI TTS, reproduciéndolo directamente
+            if (audioContent) {
+                try {
+                    const audio = new Audio(audioContent);
+                    audio.play().catch(e => console.error("Error reproduciendo audio:", e));
+                    return;
+                } catch (e) {
+                    console.warn("Error en audio HD, usando fallback del navegador:", e);
+                }
+            }
+
+            // Fallback a voz del navegador si no hay audio del servidor
             if (!('speechSynthesis' in window)) return;
 
-            window.speechSynthesis.cancel(); // Stop any active speech
+            window.speechSynthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang;
             utterance.rate = 0.95;
-            utterance.pitch = 1.0;
 
             const voices = window.speechSynthesis.getVoices();
             const specificVoice = voices.find(v => v.lang === lang || v.lang.replace('_', '-') === lang);
@@ -484,11 +495,7 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        window.speechSynthesis.onvoiceschanged = () => {
-            window.speechSynthesis.getVoices();
-        };
-
-        function addChatBubble(text, type, langCode) {
+        function addChatBubble(text, type, langCode, audioContent = null) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex w-full ${type === 'source' ? 'justify-end' : 'justify-start'}`;
 
@@ -509,8 +516,8 @@
             if (type === 'translated') {
                 const playBtn = document.createElement('button');
                 playBtn.className = "mt-2 text-xs text-purple-200 hover:text-white transition flex items-center gap-1 active:scale-95";
-                playBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Escuchar de nuevo';
-                playBtn.onclick = () => speakText(text, langCode);
+                playBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Escuchar voz IA';
+                playBtn.onclick = () => speakText(text, langCode, audioContent);
                 bubble.appendChild(playBtn);
             }
 
