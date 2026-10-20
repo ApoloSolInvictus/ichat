@@ -246,7 +246,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Firebase Config (Fallback minimal project structure for Auth flow)
+        // Configuración dinámica de Firebase
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
@@ -268,7 +268,7 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const userEmail = document.getElementById('userEmail');
 
-        // Handle Login
+        // Función para Iniciar Sesión con Google
         async function handleGoogleLogin() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -278,12 +278,12 @@
                     try {
                         await signInWithPopup(auth, provider);
                     } catch (popupErr) {
-                        // Fallback anonymous session if custom domain popup is blocked
+                        console.warn("Popup bloqueado o cancelado, intentando fallback:", popupErr);
                         await signInAnonymously(auth);
                     }
                 }
             } catch (error) {
-                console.warn("Auth Fallback active:", error);
+                console.warn("Auth Fallback activo:", error);
                 await signInAnonymously(auth);
             }
         }
@@ -293,15 +293,16 @@
 
         logoutBtn.addEventListener('click', () => {
             signOut(auth);
+            showToast("Sesión cerrada correctamente", "info");
         });
 
-        // Auth State Listener
+        // Escuchador del Estado de Autenticación
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 landingPage.classList.add('hidden');
                 translatorApp.classList.remove('hidden');
                 userEmail.textContent = user.email || `Usuario #${user.uid.slice(0, 6)}`;
-                showToast("¡Sesión iniciada con éxito!", "success");
+                showToast("¡Bienvenido a iChat!", "success");
             } else {
                 landingPage.classList.remove('hidden');
                 translatorApp.classList.add('hidden');
