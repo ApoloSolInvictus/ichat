@@ -11,10 +11,14 @@ export default async function handler(req, res) {
 
   try {
     const apiKey = process.env.OPENAI_API_KEY;
+    // Permite usar OPENAI_MODEL si está definida en Vercel, o gpt-4o-mini por defecto
+    const modelName = process.env.OPENAI_MODEL || 'gpt-4o-mini';
     
     if (!apiKey) {
-      console.error("Falta OPENAI_API_KEY en Vercel");
-      return res.status(500).json({ error: 'Falta configurar OPENAI_API_KEY en Vercel.' });
+      console.error("Falta OPENAI_API_KEY en las variables de entorno de Vercel.");
+      return res.status(500).json({ 
+        error: 'Falta la API Key. Agrega OPENAI_API_KEY en las Variables de Entorno de Vercel y haz un Redeploy.' 
+      });
     }
 
     const systemPrompt = `You are an expert native interpreter. Translate the text from language code '${fromLang}' to '${toLang}'. Capture the local dialect and slang if applicable based on the language codes. Only return the translated text, absolutely nothing else. Do not add quotes.`;
@@ -26,7 +30,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-realtime-translate',
+        model: modelName,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: text }
@@ -38,8 +42,10 @@ export default async function handler(req, res) {
     const data = await openAiResponse.json();
 
     if (data.error) {
-      console.error("Error de OpenAI:", data.error);
-      return res.status(400).json({ error: data.error.message });
+      console.error("Error devuelto por OpenAI:", data.error);
+      return res.status(400).json({ 
+        error: `Error de OpenAI (${data.error.type || 'api_error'}): ${data.error.message}` 
+      });
     }
 
     const translatedText = data.choices[0].message.content.trim();
@@ -72,10 +78,7 @@ export default async function handler(req, res) {
     res.status(200).json({ translatedText, audioContent });
 
   } catch (error) {
-    console.error('Error interno:', error);
-    res.status(500).json({ error: 'Error al procesar la traducción.' });
+    console.error('Error interno del servidor:', error);
+    res.status(500).json({ error: 'Error al procesar la traducción en el servidor.' });
   }
 }
-```
-
-Haz el **Redeploy** en Vercel tras confirmar la variable y verás cómo empieza a traducir al instante con **GPT-5.6 Luna**. ¡Me avisas cuando quede listo, Socio!
