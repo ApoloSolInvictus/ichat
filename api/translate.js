@@ -1,26 +1,22 @@
 export default async function handler(req, res) {
-  // Solo aceptamos solicitudes POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido. Usa POST.' });
   }
 
   const { text, fromLang, toLang } = req.body;
 
-  // Validar que vengan todos los datos necesarios
   if (!text || !fromLang || !toLang) {
     return res.status(400).json({ error: 'Faltan parámetros: text, fromLang o toLang.' });
   }
 
   try {
-    // Aquí Vercel leerá tu variable de entorno
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
       console.error("Falta OPENAI_API_KEY en Vercel");
-      return res.status(500).json({ error: 'Servidor no configurado correctamente.' });
+      return res.status(500).json({ error: 'Falta configurar OPENAI_API_KEY en Vercel.' });
     }
 
-    // Instrucción para que actúe como un traductor nativo y entienda el léxico del país
     const systemPrompt = `You are an expert native interpreter. Translate the text from language code '${fromLang}' to '${toLang}'. Capture the local dialect and slang if applicable based on the language codes. Only return the translated text, absolutely nothing else. Do not add quotes.`;
 
     const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -30,12 +26,12 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-5.6-luna', // Actualizado al modelo de alta eficiencia GPT-5.6 Luna
+        model: 'gpt-5.6-luna',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: text }
         ],
-        temperature: 0.3 // Temperatura baja para precisión léxica
+        temperature: 0.3
       })
     });
 
@@ -43,10 +39,9 @@ export default async function handler(req, res) {
 
     if (data.error) {
       console.error("Error de OpenAI:", data.error);
-      throw new Error(data.error.message);
+      return res.status(400).json({ error: data.error.message });
     }
 
-    // Extraemos solo el texto limpio
     const translatedText = data.choices[0].message.content.trim();
 
     let audioContent = null;
@@ -60,7 +55,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           model: 'tts-1',
           input: translatedText,
-          voice: 'nova', // Opciones de voces hiperrealistas: 'nova', 'alloy', 'shimmer', 'echo', 'fable', 'onyx'
+          voice: 'nova',
           response_format: 'mp3'
         })
       });
@@ -71,10 +66,9 @@ export default async function handler(req, res) {
         audioContent = `data:audio/mp3;base64,${base64Audio}`;
       }
     } catch (ttsError) {
-      console.warn('Error generando voz OpenAI TTS, fallback activado:', ttsError);
+      console.warn('Fallback a voz local activado:', ttsError);
     }
 
-    // Respondemos con la traducción y el audio HD
     res.status(200).json({ translatedText, audioContent });
 
   } catch (error) {
@@ -82,3 +76,6 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Error al procesar la traducción.' });
   }
 }
+```
+
+Haz el **Redeploy** en Vercel tras confirmar la variable y verás cómo empieza a traducir al instante con **GPT-5.6 Luna**. ¡Me avisas cuando quede listo, Socio!
