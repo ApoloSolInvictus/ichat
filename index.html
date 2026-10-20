@@ -96,7 +96,7 @@
             <i class="fa-solid fa-language mr-2 text-blue-400"></i>iChat
         </h1>
         <div class="text-xs bg-purple-900/60 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
-            <i class="fa-solid fa-sparkles text-purple-400 mr-1"></i>OpenAI GPT-Live Audio
+            <i class="fa-solid fa-sparkles text-purple-400 mr-1"></i>OpenAI Voice Translator
         </div>
     </header>
 
@@ -456,20 +456,22 @@
 
                 if (response.ok && data.translatedText) {
                     const translatedText = data.translatedText;
-                    showToast("¡Traducido y hablado en voz HD!", "success");
+                    showToast("¡Traducido e interpretado con éxito!", "success");
 
                     // Display translated bubble with HD audio
                     addChatBubble(translatedText, 'translated', toLang, data.audioContent);
 
-                    // Reproducir audio realista devuelto por el servidor
+                    // Reproducir audio devuelto por el servidor
                     speakText(translatedText, toLang, data.audioContent);
                 } else {
-                    throw new Error(data.error || "Respuesta inválida del servidor");
+                    const errDetail = data.error || "Error desconocido";
+                    showToast("Error en Vercel / OpenAI", "error");
+                    addChatBubble(`⚠️ ${errDetail}`, 'translated', toLang);
                 }
             } catch (error) {
                 console.error("Error en la traducción:", error);
-                showToast("Error al conectar con OpenAI.", "error");
-                addChatBubble("⚠️ No se pudo traducir. Verifica la API KEY en Vercel.", 'translated', toLang);
+                showToast("Error de conexión.", "error");
+                addChatBubble("⚠️ Error de conexión con el backend de Vercel.", 'translated', toLang);
             }
         }
 
