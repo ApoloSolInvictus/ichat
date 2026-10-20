@@ -30,12 +30,12 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Usamos este modelo porque es rapidísimo y muy económico para textos
+        model: 'gpt-5.6-luna', // Actualizado al modelo de alta eficiencia GPT-5.6 Luna
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: text }
         ],
-        temperature: 0.3 // Temperatura baja para que sea preciso y no invente cosas
+        temperature: 0.3 // Temperatura baja para precisión léxica
       })
     });
 
