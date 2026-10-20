@@ -6,6 +6,7 @@
     <title>iChat - Traductor de Voz en Vivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         
@@ -16,7 +17,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Ocultar scrollbar para un look de app móvil */
+        /* Ocultar scrollbar para un look de app móvil pura */
         ::-webkit-scrollbar {
             width: 0px;
             background: transparent;
@@ -94,7 +95,9 @@
         <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
             <i class="fa-solid fa-language mr-2 text-blue-400"></i>iChat
         </h1>
-        <div class="text-sm text-slate-400">Traductor en Vivo</div>
+        <div class="text-xs bg-purple-900/60 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
+            <i class="fa-solid fa-sparkles text-purple-400 mr-1"></i>OpenAI GPT-4o
+        </div>
     </header>
 
     <!-- Configuración de Idiomas -->
@@ -106,7 +109,7 @@
             </select>
         </div>
         <div class="flex flex-col justify-end pb-2">
-            <button id="swapLangs" class="w-10 h-10 rounded-full bg-slate-700 text-blue-400 hover:bg-slate-600 hover:text-white transition flex items-center justify-center border border-slate-600">
+            <button id="swapLangs" title="Intercambiar Idiomas" class="w-10 h-10 rounded-full bg-slate-700 text-blue-400 hover:bg-slate-600 hover:text-white transition flex items-center justify-center border border-slate-600 active:scale-90">
                 <i class="fa-solid fa-arrow-right-arrow-left"></i>
             </button>
         </div>
@@ -119,16 +122,29 @@
     </div>
 
     <!-- Área de Chat -->
-    <main id="chatArea" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-32">
-        <div class="text-center text-slate-500 text-sm mt-4">
-            Selecciona los idiomas, presiona el micrófono, habla y luego presiona terminar.
+    <main id="chatArea" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-36">
+        <div id="welcomeMessage" class="text-center text-slate-400 text-sm mt-6 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
+            <i class="fa-solid fa-microphone-slash text-2xl text-blue-400 mb-2 block"></i>
+            Selecciona los idiomas, presiona el micrófono para empezar a hablar, y toca <strong>Terminar</strong> para traducir al instante con voz.
         </div>
-        <!-- Los mensajes aparecerán aquí -->
+        
+        <!-- Live Transcript Preview during Recording -->
+        <div id="livePreviewContainer" class="hidden w-full my-2 bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4 transition-all">
+            <div class="flex items-center gap-2 text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                Escuchando en vivo...
+            </div>
+            <p id="livePreviewText" class="text-slate-200 text-sm italic min-h-[20px]">
+                Habla ahora...
+            </p>
+        </div>
     </main>
 
     <!-- Controles Flotantes Inferiores -->
-    <div class="absolute bottom-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent pt-12 pb-8 px-6 flex justify-center z-20">
-        
+    <div class="absolute bottom-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent pt-10 pb-8 px-6 flex justify-center z-20">
         <div class="flex items-center gap-6">
             <!-- Botón de Iniciar/Detener Grabación -->
             <div id="micContainer" class="relative flex items-center justify-center">
@@ -138,27 +154,27 @@
                 </button>
             </div>
             
-            <!-- Botón para detener (aparece al grabar) -->
-            <button id="stopBtn" class="bg-red-500 text-white px-6 py-4 rounded-full font-bold shadow-lg shadow-red-900/50 hover:bg-red-400 active:scale-95 hidden flex items-center gap-2 transform transition-transform">
-                <i class="fa-solid fa-stop"></i> Terminar
+            <!-- Botón para detener y procesar -->
+            <button id="stopBtn" class="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-4 rounded-full font-bold shadow-lg shadow-red-900/50 hover:from-red-400 hover:to-rose-500 active:scale-95 hidden flex items-center gap-2 transform transition-all">
+                <i class="fa-solid fa-check"></i> Terminar
             </button>
         </div>
-
     </div>
 
     <!-- Indicador de Estado / Toast -->
-    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl border border-slate-700 opacity-0 translate-y-[-20px] z-50 flex items-center gap-3">
+    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl border border-slate-700 opacity-0 translate-y-[-20px] z-50 flex items-center gap-3 pointer-events-none">
         <i id="toastIcon" class="fa-solid fa-info-circle text-blue-400"></i>
         <span id="toastMessage" class="font-medium text-sm"></span>
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN DE IDIOMAS (Variedad de dialectos/países) ---
         const languages = [
             { code: 'es-MX', name: 'Español (México)' },
             { code: 'es-ES', name: 'Español (España)' },
             { code: 'es-AR', name: 'Español (Argentina)' },
             { code: 'es-CO', name: 'Español (Colombia)' },
+            { code: 'es-CL', name: 'Español (Chile)' },
+            { code: 'es-PE', name: 'Español (Perú)' },
             { code: 'en-US', name: 'Inglés (EE. UU.)' },
             { code: 'en-GB', name: 'Inglés (Reino Unido)' },
             { code: 'fr-FR', name: 'Francés (Francia)' },
@@ -175,7 +191,6 @@
             { code: 'hi-IN', name: 'Hindi' }
         ];
 
-        // --- 2. VARIABLES DE ESTADO Y ELEMENTOS DEL DOM ---
         const langFromEl = document.getElementById('langFrom');
         const langToEl = document.getElementById('langTo');
         const swapBtn = document.getElementById('swapLangs');
@@ -186,28 +201,29 @@
         const toastEl = document.getElementById('toast');
         const toastMessageEl = document.getElementById('toastMessage');
         const toastIconEl = document.getElementById('toastIcon');
+        const livePreviewContainer = document.getElementById('livePreviewContainer');
+        const livePreviewText = document.getElementById('livePreviewText');
+        const welcomeMessage = document.getElementById('welcomeMessage');
 
         let isRecording = false;
-        let accumulatedTranscript = '';
-        let sessionFinalTranscript = '';
-        
-        // Inicializar Web Speech API
+        let recordedChunks = [];
+        let restartTimeout = null;
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            recognition.continuous = true; // Escucha continua hasta que el usuario detenga
-            recognition.interimResults = true; // Mostrar resultados parciales (opcional, para feedback visual)
+            // continuous = false prevents Android Chrome from endlessly duplicating accumulated results
+            recognition.continuous = false; 
+            recognition.interimResults = true;
         } else {
-            showToast("Tu navegador no soporta el reconocimiento de voz. Usa Chrome, Edge o Safari.", "error");
+            showToast("Tu navegador no soporta reconocimiento de voz. Usa Chrome, Edge o Safari.", "error");
             recordBtn.disabled = true;
             recordBtn.classList.add('opacity-50', 'cursor-not-allowed');
         }
 
-        // --- 3. INICIALIZACIÓN DE LA INTERFAZ ---
         function initApp() {
-            // Llenar selectores
             languages.forEach(lang => {
                 const optionFrom = document.createElement('option');
                 optionFrom.value = lang.code;
@@ -220,11 +236,9 @@
                 langToEl.appendChild(optionTo);
             });
 
-            // Selecciones por defecto (Ej: Español a Inglés)
             langFromEl.value = 'es-MX';
             langToEl.value = 'en-US';
 
-            // Event Listeners
             swapBtn.addEventListener('click', () => {
                 const temp = langFromEl.value;
                 langFromEl.value = langToEl.value;
@@ -235,37 +249,53 @@
             stopBtn.addEventListener('click', stopRecordingManually);
         }
 
-        // --- 4. LÓGICA DE GRABACIÓN ---
         function toggleRecording() {
             if (!recognition) return;
 
             if (isRecording) {
+                stopRecordingManually();
                 return;
             }
 
-            // Iniciar grabación
+            // Start Recording Session
+            recordedChunks = [];
             recognition.lang = langFromEl.value;
-            accumulatedTranscript = '';
-            sessionFinalTranscript = '';
-            
+            isRecording = true;
+
+            updateUIForRecording(true);
+            showToast("Escuchando... Habla libremente.", "info");
+
             try {
                 recognition.start();
-                isRecording = true;
-                updateUIForRecording(true);
-                showToast("Escuchando... Habla ahora.", "info");
             } catch (e) {
                 console.error("Error al iniciar reconocimiento:", e);
-                showToast("Error al iniciar el micrófono.", "error");
+                showToast("Error al activar el micrófono.", "error");
             }
         }
 
         function stopRecordingManually() {
-            if (isRecording && recognition) {
-                isRecording = false;
-                updateUIForRecording(false);
-                showToast("Procesando traducción...", "sync");
+            if (!isRecording) return;
+
+            isRecording = false;
+            clearTimeout(restartTimeout);
+            updateUIForRecording(false);
+
+            try {
                 recognition.stop();
-                // El procesamiento real se hace en el evento onend
+            } catch (e) {
+                console.error("Error al detener reconocimiento:", e);
+            }
+
+            showToast("Procesando traducción...", "sync");
+
+            // Combine all unique chunks recorded during this session
+            const rawCombined = recordedChunks.join(' ');
+            const cleanText = cleanDuplicateText(rawCombined);
+
+            if (cleanText.length > 0) {
+                processTranslation(cleanText);
+            } else {
+                showToast("No se detectó voz clara. Intenta de nuevo.", "warning");
             }
         }
 
@@ -274,119 +304,177 @@
                 micContainer.classList.add('recording');
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
                 stopBtn.classList.remove('hidden');
-                setTimeout(() => stopBtn.classList.add('scale-100'), 10);
+                livePreviewContainer.classList.remove('hidden');
+                livePreviewText.textContent = "Escuchando...";
+                if (welcomeMessage) welcomeMessage.classList.add('hidden');
             } else {
                 micContainer.classList.remove('recording');
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
                 stopBtn.classList.add('hidden');
+                livePreviewContainer.classList.add('hidden');
             }
         }
 
-        // Eventos del Reconocimiento de Voz
         if (recognition) {
             recognition.onresult = (event) => {
-                sessionFinalTranscript = '';
-                // Se lee desde 0 en cada evento de la sesión para evitar duplicados de Android Chrome
-                for (let i = 0; i < event.results.length; ++i) {
+                let currentInterim = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcriptStr = event.results[i][0].transcript.trim();
+
                     if (event.results[i].isFinal) {
-                        sessionFinalTranscript += event.results[i][0].transcript + ' ';
+                        if (transcriptStr.length > 0) {
+                            // Only append chunk if it isn't identical to the last captured chunk
+                            const lastChunk = recordedChunks[recordedChunks.length - 1];
+                            if (!lastChunk || lastChunk.toLowerCase() !== transcriptStr.toLowerCase()) {
+                                recordedChunks.push(transcriptStr);
+                            }
+                        }
+                    } else {
+                        currentInterim += transcriptStr + ' ';
                     }
                 }
+
+                // Update live preview in UI
+                const liveCombined = recordedChunks.join(' ') + ' ' + currentInterim;
+                livePreviewText.textContent = cleanDuplicateText(liveCombined) || "Escuchando...";
             };
 
             recognition.onerror = (event) => {
-                console.error("Error de reconocimiento:", event.error);
-                if(event.error === 'no-speech') {
-                    // Es solo una pausa, no detenemos la app. onend lo reiniciará si sigue grabando.
-                } else {
+                console.warn("Speech event warning:", event.error);
+                if (event.error === 'not-allowed') {
                     isRecording = false;
                     updateUIForRecording(false);
-                    showToast("Error con el micrófono.", "error");
+                    showToast("Permiso de micrófono denegado.", "error");
                 }
             };
 
             recognition.onend = () => {
-                accumulatedTranscript += sessionFinalTranscript + ' ';
-                sessionFinalTranscript = '';
-
+                // If user hasn't clicked "Terminar", automatically keep listening without clearing history
                 if (isRecording) {
-                    // Si el micrófono se detuvo solo por silencio, lo reiniciamos silenciosamente
-                    try {
-                        recognition.start();
-                    } catch (e) {
-                        console.error("Error al reiniciar escucha:", e);
-                    }
-                } else {
-                    // El usuario presionó "Terminar" conscientemente
-                    let finalText = accumulatedTranscript.trim();
-                    if (finalText.length > 0) {
-                        processTranslation(finalText);
-                    } else {
-                        showToast("No se capturó ningún mensaje.", "warning");
-                    }
+                    restartTimeout = setTimeout(() => {
+                        if (isRecording) {
+                            try {
+                                recognition.start();
+                            } catch (e) {
+                                console.warn("Re-start silent error:", e);
+                            }
+                        }
+                    }, 100);
                 }
             };
         }
 
-        // --- 5. LÓGICA DE TRADUCCIÓN Y TEXT-TO-SPEECH ---
+        function cleanDuplicateText(text) {
+            if (!text) return '';
+
+            // 1. Normalize spaces
+            let normalized = text.replace(/\s+/g, ' ').trim();
+            if (!normalized) return '';
+
+            // 2. Remove adjacent duplicate words (case & punctuation insensitive)
+            const words = normalized.split(' ');
+            const dedupWords = [];
+
+            for (let i = 0; i < words.length; i++) {
+                const current = words[i];
+                const prev = dedupWords[dedupWords.length - 1];
+
+                const normCurrent = current.toLowerCase().replace(/[.,?!]/g, '');
+                const normPrev = prev ? prev.toLowerCase().replace(/[.,?!]/g, '') : null;
+
+                if (!normPrev || normCurrent !== normPrev) {
+                    dedupWords.push(current);
+                }
+            }
+
+            // 3. Multi-pass removal of repeated adjacent phrases (phrase lengths 5 down to 2 words)
+            let finalWords = dedupWords;
+            let modified = true;
+
+            while (modified) {
+                modified = false;
+                const tempWords = [];
+                let i = 0;
+
+                while (i < finalWords.length) {
+                    let dupFound = false;
+
+                    for (let len = 5; len >= 2; len--) {
+                        if (i + 2 * len <= finalWords.length) {
+                            const phrase1 = finalWords.slice(i, i + len).join(' ').toLowerCase().replace(/[.,?!]/g, '');
+                            const phrase2 = finalWords.slice(i + len, i + 2 * len).join(' ').toLowerCase().replace(/[.,?!]/g, '');
+
+                            if (phrase1 === phrase2 && phrase1.length > 0) {
+                                // Duplicate phrase found! Keep only the first instance
+                                for (let k = 0; k < len; k++) {
+                                    tempWords.push(finalWords[i + k]);
+                                }
+                                i += 2 * len;
+                                dupFound = true;
+                                modified = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!dupFound) {
+                        tempWords.push(finalWords[i]);
+                        i++;
+                    }
+                }
+                finalWords = tempWords;
+            }
+
+            return finalWords.join(' ');
+        }
+
         async function processTranslation(text) {
             const fromLang = langFromEl.value;
             const toLang = langToEl.value;
 
-            // 1. Mostrar mensaje original en el chat
+            // Display source bubble
             addChatBubble(text, 'source', fromLang);
 
-            // 2. Traducir usando el endpoint de Vercel (OpenAI)
             try {
+                // Call Vercel Backend Serverless Function
                 const response = await fetch('/api/translate', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        text: text,
-                        fromLang: fromLang,
-                        toLang: toLang
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, fromLang, toLang })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok && data.translatedText) {
-                    let translatedText = data.translatedText;
-                    
-                    showToast("¡Traducido por IA!", "success");
-                    // 3. Mostrar mensaje traducido en el chat
+                    const translatedText = data.translatedText;
+                    showToast("¡Traducido por OpenAI!", "success");
+
+                    // Display translated bubble
                     addChatBubble(translatedText, 'translated', toLang);
-                    
-                    // 4. Leer en voz alta
+
+                    // Speak out translated message
                     speakText(translatedText, toLang);
                 } else {
-                    throw new Error(data.error || "Error en la respuesta de la API de Vercel");
+                    throw new Error(data.error || "Respuesta inválida del servidor");
                 }
             } catch (error) {
                 console.error("Error en la traducción:", error);
                 showToast("Error al conectar con OpenAI.", "error");
-                addChatBubble("⚠️ No se pudo traducir. Verifica el backend o tu conexión.", 'translated', toLang);
+                addChatBubble("⚠️ No se pudo traducir. Verifica la API KEY en Vercel.", 'translated', toLang);
             }
         }
 
         function speakText(text, lang) {
-            if (!('speechSynthesis' in window)) {
-                console.warn("Speech Synthesis no soportado");
-                return;
-            }
+            if (!('speechSynthesis' in window)) return;
 
-            // Cancelar cualquier audio reproduciéndose
-            window.speechSynthesis.cancel();
+            window.speechSynthesis.cancel(); // Stop any active speech
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang;
-            // Configurar algunas propiedades para que suene mejor
-            utterance.rate = 0.95; // Un poco más lento para mayor claridad
-            utterance.pitch = 1;
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
 
-            // Intentar encontrar una voz nativa específica del país si existe
             const voices = window.speechSynthesis.getVoices();
             const specificVoice = voices.find(v => v.lang === lang || v.lang.replace('_', '-') === lang);
             if (specificVoice) {
@@ -396,47 +484,39 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Asegurar que las voces carguen (en algunos navegadores es asíncrono)
         window.speechSynthesis.onvoiceschanged = () => {
             window.speechSynthesis.getVoices();
         };
 
-        // --- 6. UTILIDADES DE UI ---
         function addChatBubble(text, type, langCode) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex w-full ${type === 'source' ? 'justify-end' : 'justify-start'}`;
 
             const bubble = document.createElement('div');
             bubble.className = `p-4 rounded-2xl shadow-md chat-bubble ${type === 'source' ? 'chat-bubble-source text-white rounded-br-sm' : 'chat-bubble-translated text-white rounded-bl-sm'}`;
-            
-            // Etiqueta de idioma pequeña
+
             const langLabel = document.createElement('div');
             langLabel.className = `text-[10px] uppercase font-bold tracking-wider mb-1 ${type === 'source' ? 'text-blue-200' : 'text-purple-200'}`;
             langLabel.textContent = languages.find(l => l.code === langCode)?.name || langCode;
-            
+
             const textEl = document.createElement('p');
             textEl.className = "text-base leading-relaxed";
             textEl.textContent = text;
 
-            // Botón de reproducir (si es traducido, permitir reproducir de nuevo)
+            bubble.appendChild(langLabel);
+            bubble.appendChild(textEl);
+
             if (type === 'translated') {
                 const playBtn = document.createElement('button');
-                playBtn.className = "mt-2 text-xs text-purple-200 hover:text-white transition flex items-center gap-1";
+                playBtn.className = "mt-2 text-xs text-purple-200 hover:text-white transition flex items-center gap-1 active:scale-95";
                 playBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Escuchar de nuevo';
                 playBtn.onclick = () => speakText(text, langCode);
-                
-                bubble.appendChild(langLabel);
-                bubble.appendChild(textEl);
                 bubble.appendChild(playBtn);
-            } else {
-                bubble.appendChild(langLabel);
-                bubble.appendChild(textEl);
             }
 
             wrapper.appendChild(bubble);
             chatArea.appendChild(wrapper);
 
-            // Auto-scroll hacia abajo
             chatArea.scrollTo({
                 top: chatArea.scrollHeight,
                 behavior: 'smooth'
@@ -446,11 +526,10 @@
         let toastTimeout;
         function showToast(message, type) {
             clearTimeout(toastTimeout);
-            
+
             toastMessageEl.textContent = message;
-            
-            // Configurar ícono y color
             toastIconEl.className = "fa-solid ";
+
             if (type === 'error') {
                 toastIconEl.className += "fa-circle-exclamation text-red-400";
             } else if (type === 'success') {
@@ -472,9 +551,8 @@
             }, 3000);
         }
 
-        // Iniciar la app
+        // Initialize application on load
         initApp();
-
     </script>
 </body>
 </html>
