@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iChat - Traductor de Voz en Vivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Ocultar scrollbar para un look de app móvil */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .chat-bubble {
+            animation: fadeIn 0.3s ease-out forwards;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+
+        .chat-bubble-source {
+            border-bottom-right-radius: 4px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb); /* Blue */
+        }
+
+        .chat-bubble-translated {
+            border-bottom-left-radius: 4px;
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9); /* Purple */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.5);
+            z-index: -1;
+            animation: pulse 1.5s infinite;
+            display: none;
+        }
+
+        .recording .pulse-ring {
+            display: block;
+        }
+
+        .recording-button {
+            transition: all 0.3s ease;
+        }
+
+        .recording .recording-button {
+            background-color: #ef4444; /* Red for recording */
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Estilo para los selectores nativos */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem top 50%;
+            background-size: 0.65rem auto;
+        }
+        
+        #toast {
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-800 pt-8 pb-4 px-6 shadow-md z-10 flex justify-between items-center relative">
+        <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+            <i class="fa-solid fa-language mr-2 text-blue-400"></i>iChat
+        </h1>
+        <div class="text-sm text-slate-400">Traductor en Vivo</div>
+    </header>
+
+    <!-- Configuración de Idiomas -->
+    <div class="bg-slate-800/50 p-4 shadow-sm z-10 flex gap-2">
+        <div class="flex-1 relative">
+            <label class="text-xs text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Hablas en</label>
+            <select id="langFrom" class="w-full bg-slate-700 text-white rounded-xl py-3 pl-4 pr-10 outline-none focus:ring-2 focus:ring-blue-500 transition border border-slate-600 shadow-inner">
+                <!-- Opciones cargadas por JS -->
+            </select>
+        </div>
+        <div class="flex flex-col justify-end pb-2">
+            <button id="swapLangs" class="w-10 h-10 rounded-full bg-slate-700 text-blue-400 hover:bg-slate-600 hover:text-white transition flex items-center justify-center border border-slate-600">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            </button>
+        </div>
+        <div class="flex-1 relative">
+            <label class="text-xs text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Traducir a</label>
+            <select id="langTo" class="w-full bg-slate-700 text-white rounded-xl py-3 pl-4 pr-10 outline-none focus:ring-2 focus:ring-purple-500 transition border border-slate-600 shadow-inner">
+                <!-- Opciones cargadas por JS -->
+            </select>
+        </div>
+    </div>
+
+    <!-- Área de Chat -->
+    <main id="chatArea" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-32">
+        <div class="text-center text-slate-500 text-sm mt-4">
+            Selecciona los idiomas, presiona el micrófono, habla y luego presiona terminar.
+        </div>
+        <!-- Los mensajes aparecerán aquí -->
+    </main>
+
+    <!-- Controles Flotantes Inferiores -->
+    <div class="absolute bottom-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent pt-12 pb-8 px-6 flex justify-center z-20">
+        
+        <div class="flex items-center gap-6">
+            <!-- Botón de Iniciar/Detener Grabación -->
+            <div id="micContainer" class="relative flex items-center justify-center">
+                <div class="pulse-ring"></div>
+                <button id="recordBtn" class="recording-button bg-blue-600 text-white w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-blue-900/50 hover:bg-blue-500 active:scale-95 z-10">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+            </div>
+            
+            <!-- Botón para detener (aparece al grabar) -->
+            <button id="stopBtn" class="bg-red-500 text-white px-6 py-4 rounded-full font-bold shadow-lg shadow-red-900/50 hover:bg-red-400 active:scale-95 hidden flex items-center gap-2 transform transition-transform">
+                <i class="fa-solid fa-stop"></i> Terminar
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Indicador de Estado / Toast -->
+    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl border border-slate-700 opacity-0 translate-y-[-20px] z-50 flex items-center gap-3">
+        <i id="toastIcon" class="fa-solid fa-info-circle text-blue-400"></i>
+        <span id="toastMessage" class="font-medium text-sm"></span>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURACIÓN DE IDIOMAS (Variedad de dialectos/países) ---
+        const languages = [
+            { code: 'es-MX', name: 'Español (México)' },
+            { code: 'es-ES', name: 'Español (España)' },
+            { code: 'es-AR', name: 'Español (Argentina)' },
+            { code: 'es-CO', name: 'Español (Colombia)' },
+            { code: 'en-US', name: 'Inglés (EE. UU.)' },
+            { code: 'en-GB', name: 'Inglés (Reino Unido)' },
+            { code: 'fr-FR', name: 'Francés (Francia)' },
+            { code: 'fr-CA', name: 'Francés (Canadá)' },
+            { code: 'pt-BR', name: 'Portugués (Brasil)' },
+            { code: 'pt-PT', name: 'Portugués (Portugal)' },
+            { code: 'de-DE', name: 'Alemán' },
+            { code: 'it-IT', name: 'Italiano' },
+            { code: 'ja-JP', name: 'Japonés' },
+            { code: 'ko-KR', name: 'Coreano' },
+            { code: 'zh-CN', name: 'Chino (Mandarín)' },
+            { code: 'ru-RU', name: 'Ruso' },
+            { code: 'ar-SA', name: 'Árabe' },
+            { code: 'hi-IN', name: 'Hindi' }
+        ];
+
+        // --- 2. VARIABLES DE ESTADO Y ELEMENTOS DEL DOM ---
+        const langFromEl = document.getElementById('langFrom');
+        const langToEl = document.getElementById('langTo');
+        const swapBtn = document.getElementById('swapLangs');
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const micContainer = document.getElementById('micContainer');
+        const chatArea = document.getElementById('chatArea');
+        const toastEl = document.getElementById('toast');
+        const toastMessageEl = document.getElementById('toastMessage');
+        const toastIconEl = document.getElementById('toastIcon');
+
+        let isRecording = false;
+        let accumulatedTranscript = '';
+        let sessionFinalTranscript = '';
+        
+        // Inicializar Web Speech API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true; // Escucha continua hasta que el usuario detenga
+            recognition.interimResults = true; // Mostrar resultados parciales (opcional, para feedback visual)
+        } else {
+            showToast("Tu navegador no soporta el reconocimiento de voz. Usa Chrome, Edge o Safari.", "error");
+            recordBtn.disabled = true;
+            recordBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        // --- 3. INICIALIZACIÓN DE LA INTERFAZ ---
+        function initApp() {
+            // Llenar selectores
+            languages.forEach(lang => {
+                const optionFrom = document.createElement('option');
+                optionFrom.value = lang.code;
+                optionFrom.textContent = lang.name;
+                langFromEl.appendChild(optionFrom);
+
+                const optionTo = document.createElement('option');
+                optionTo.value = lang.code;
+                optionTo.textContent = lang.name;
+                langToEl.appendChild(optionTo);
+            });
+
+            // Selecciones por defecto (Ej: Español a Inglés)
+            langFromEl.value = 'es-MX';
+            langToEl.value = 'en-US';
+
+            // Event Listeners
+            swapBtn.addEventListener('click', () => {
+                const temp = langFromEl.value;
+                langFromEl.value = langToEl.value;
+                langToEl.value = temp;
+            });
+
+            recordBtn.addEventListener('click', toggleRecording);
+            stopBtn.addEventListener('click', stopRecordingManually);
+        }
+
+        // --- 4. LÓGICA DE GRABACIÓN ---
+        function toggleRecording() {
+            if (!recognition) return;
+
+            if (isRecording) {
+                return;
+            }
+
+            // Iniciar grabación
+            recognition.lang = langFromEl.value;
+            accumulatedTranscript = '';
+            sessionFinalTranscript = '';
+            
+            try {
+                recognition.start();
+                isRecording = true;
+                updateUIForRecording(true);
+                showToast("Escuchando... Habla ahora.", "info");
+            } catch (e) {
+                console.error("Error al iniciar reconocimiento:", e);
+                showToast("Error al iniciar el micrófono.", "error");
+            }
+        }
+
+        function stopRecordingManually() {
+            if (isRecording && recognition) {
+                isRecording = false;
+                updateUIForRecording(false);
+                showToast("Procesando traducción...", "sync");
+                recognition.stop();
+                // El procesamiento real se hace en el evento onend
+            }
+        }
+
+        function updateUIForRecording(recording) {
+            if (recording) {
+                micContainer.classList.add('recording');
+                recordBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+                stopBtn.classList.remove('hidden');
+                setTimeout(() => stopBtn.classList.add('scale-100'), 10);
+            } else {
+                micContainer.classList.remove('recording');
+                recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                stopBtn.classList.add('hidden');
+            }
+        }
+
+        // Eventos del Reconocimiento de Voz
+        if (recognition) {
+            recognition.onresult = (event) => {
+                sessionFinalTranscript = '';
+                // Se lee desde 0 en cada evento de la sesión para evitar duplicados de Android Chrome
+                for (let i = 0; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        sessionFinalTranscript += event.results[i][0].transcript + ' ';
+                    }
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Error de reconocimiento:", event.error);
+                if(event.error === 'no-speech') {
+                    // Es solo una pausa, no detenemos la app. onend lo reiniciará si sigue grabando.
+                } else {
+                    isRecording = false;
+                    updateUIForRecording(false);
+                    showToast("Error con el micrófono.", "error");
+                }
+            };
+
+            recognition.onend = () => {
+                accumulatedTranscript += sessionFinalTranscript + ' ';
+                sessionFinalTranscript = '';
+
+                if (isRecording) {
+                    // Si el micrófono se detuvo solo por silencio, lo reiniciamos silenciosamente
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error("Error al reiniciar escucha:", e);
+                    }
+                } else {
+                    // El usuario presionó "Terminar" conscientemente
+                    let finalText = accumulatedTranscript.trim();
+                    if (finalText.length > 0) {
+                        processTranslation(finalText);
+                    } else {
+                        showToast("No se capturó ningún mensaje.", "warning");
+                    }
+                }
+            };
+        }
+
+        // --- 5. LÓGICA DE TRADUCCIÓN Y TEXT-TO-SPEECH ---
+        async function processTranslation(text) {
+            const fromLang = langFromEl.value;
+            const toLang = langToEl.value;
+
+            // 1. Mostrar mensaje original en el chat
+            addChatBubble(text, 'source', fromLang);
+
+            // 2. Traducir usando el endpoint de Vercel (OpenAI)
+            try {
+                const response = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        fromLang: fromLang,
+                        toLang: toLang
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.translatedText) {
+                    let translatedText = data.translatedText;
+                    
+                    showToast("¡Traducido por IA!", "success");
+                    // 3. Mostrar mensaje traducido en el chat
+                    addChatBubble(translatedText, 'translated', toLang);
+                    
+                    // 4. Leer en voz alta
+                    speakText(translatedText, toLang);
+                } else {
+                    throw new Error(data.error || "Error en la respuesta de la API de Vercel");
+                }
+            } catch (error) {
+                console.error("Error en la traducción:", error);
+                showToast("Error al conectar con OpenAI.", "error");
+                addChatBubble("⚠️ No se pudo traducir. Verifica el backend o tu conexión.", 'translated', toLang);
+            }
+        }
+
+        function speakText(text, lang) {
+            if (!('speechSynthesis' in window)) {
+                console.warn("Speech Synthesis no soportado");
+                return;
+            }
+
+            // Cancelar cualquier audio reproduciéndose
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            // Configurar algunas propiedades para que suene mejor
+            utterance.rate = 0.95; // Un poco más lento para mayor claridad
+            utterance.pitch = 1;
+
+            // Intentar encontrar una voz nativa específica del país si existe
+            const voices = window.speechSynthesis.getVoices();
+            const specificVoice = voices.find(v => v.lang === lang || v.lang.replace('_', '-') === lang);
+            if (specificVoice) {
+                utterance.voice = specificVoice;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Asegurar que las voces carguen (en algunos navegadores es asíncrono)
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+
+        // --- 6. UTILIDADES DE UI ---
+        function addChatBubble(text, type, langCode) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex w-full ${type === 'source' ? 'justify-end' : 'justify-start'}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = `p-4 rounded-2xl shadow-md chat-bubble ${type === 'source' ? 'chat-bubble-source text-white rounded-br-sm' : 'chat-bubble-translated text-white rounded-bl-sm'}`;
+            
+            // Etiqueta de idioma pequeña
+            const langLabel = document.createElement('div');
+            langLabel.className = `text-[10px] uppercase font-bold tracking-wider mb-1 ${type === 'source' ? 'text-blue-200' : 'text-purple-200'}`;
+            langLabel.textContent = languages.find(l => l.code === langCode)?.name || langCode;
+            
+            const textEl = document.createElement('p');
+            textEl.className = "text-base leading-relaxed";
+            textEl.textContent = text;
+
+            // Botón de reproducir (si es traducido, permitir reproducir de nuevo)
+            if (type === 'translated') {
+                const playBtn = document.createElement('button');
+                playBtn.className = "mt-2 text-xs text-purple-200 hover:text-white transition flex items-center gap-1";
+                playBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Escuchar de nuevo';
+                playBtn.onclick = () => speakText(text, langCode);
+                
+                bubble.appendChild(langLabel);
+                bubble.appendChild(textEl);
+                bubble.appendChild(playBtn);
+            } else {
+                bubble.appendChild(langLabel);
+                bubble.appendChild(textEl);
+            }
+
+            wrapper.appendChild(bubble);
+            chatArea.appendChild(wrapper);
+
+            // Auto-scroll hacia abajo
+            chatArea.scrollTo({
+                top: chatArea.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        let toastTimeout;
+        function showToast(message, type) {
+            clearTimeout(toastTimeout);
+            
+            toastMessageEl.textContent = message;
+            
+            // Configurar ícono y color
+            toastIconEl.className = "fa-solid ";
+            if (type === 'error') {
+                toastIconEl.className += "fa-circle-exclamation text-red-400";
+            } else if (type === 'success') {
+                toastIconEl.className += "fa-circle-check text-green-400";
+            } else if (type === 'warning') {
+                toastIconEl.className += "fa-triangle-exclamation text-yellow-400";
+            } else if (type === 'sync') {
+                toastIconEl.className += "fa-rotate text-blue-400 animate-spin";
+            } else {
+                toastIconEl.className += "fa-circle-info text-blue-400";
+            }
+
+            toastEl.classList.remove('opacity-0', 'translate-y-[-20px]');
+            toastEl.classList.add('opacity-100', 'translate-y-0');
+
+            toastTimeout = setTimeout(() => {
+                toastEl.classList.remove('opacity-100', 'translate-y-0');
+                toastEl.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 3000);
+        }
+
+        // Iniciar la app
+        initApp();
+
+    </script>
+</body>
+</html>
