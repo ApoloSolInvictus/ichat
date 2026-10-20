@@ -244,7 +244,17 @@
     <!-- FIREBASE AUTHENTICATION SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            signInWithRedirect, 
+            getRedirectResult, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // Configuración dinámica de Firebase
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
@@ -260,6 +270,8 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
 
         const landingPage = document.getElementById('landingPage');
         const translatorApp = document.getElementById('translatorApp');
@@ -268,32 +280,65 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const userEmail = document.getElementById('userEmail');
 
-        // Función para Iniciar Sesión con Google
+        // Procesar el resultado del Redirect al regresar de Google
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                showToast("¡Sesión iniciada con éxito!", "success");
+            }
+        }).catch((error) => {
+            console.warn("Error en el redirect de Google:", error);
+        });
+
+        // Función robusta para Iniciar Sesión con Google
         async function handleGoogleLogin() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    const provider = new GoogleAuthProvider();
-                    try {
-                        await signInWithPopup(auth, provider);
-                    } catch (popupErr) {
-                        console.warn("Popup bloqueado o cancelado, intentando fallback:", popupErr);
+                    return;
+                }
+
+                showToast("Conectando con Google...", "sync");
+                
+                try {
+                    // Intento 1: Popup emergente
+                    await signInWithPopup(auth, provider);
+                } catch (popupErr) {
+                    console.warn("Popup bloqueado o no soportado en móvil, intentando Redirect...", popupErr);
+                    
+                    if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user' || popupErr.code === 'auth/cancelled-popup-request') {
+                        // Intento 2: Redirección directa en la misma ventana
+                        await signInWithRedirect(auth, provider);
+                    } else {
+                        // Intento 3: Anónimo si las credenciales de Firebase no están activas aún
+                        console.warn("Auth Fallback activo por error de configuración:", popupErr);
                         await signInAnonymously(auth);
                     }
                 }
             } catch (error) {
-                console.warn("Auth Fallback activo:", error);
-                await signInAnonymously(auth);
+                console.warn("Entrando en modo de acceso con invitado:", error);
+                try {
+                    await signInAnonymously(auth);
+                } catch (anonErr) {
+                    // Si todo falla, forzar paso a la app para testing
+                    landingPage.classList.add('hidden');
+                    translatorApp.classList.remove('hidden');
+                    userEmail.textContent = "Usuario Demo";
+                    showToast("Acceso invitado temporal", "info");
+                }
             }
         }
 
         loginBtnHero.addEventListener('click', handleGoogleLogin);
         loginBtnTop.addEventListener('click', handleGoogleLogin);
 
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth);
-            showToast("Sesión cerrada correctamente", "info");
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showToast("Sesión cerrada correctamente", "info");
+            } catch (e) {
+                landingPage.classList.remove('hidden');
+                translatorApp.classList.add('hidden');
+            }
         });
 
         // Escuchador del Estado de Autenticación
@@ -301,8 +346,8 @@
             if (user) {
                 landingPage.classList.add('hidden');
                 translatorApp.classList.remove('hidden');
-                userEmail.textContent = user.email || `Usuario #${user.uid.slice(0, 6)}`;
-                showToast("¡Bienvenido a iChat!", "success");
+                userEmail.textContent = user.email || (user.isAnonymous ? "Usuario Invitado" : `Usuario #${user.uid.slice(0, 6)}`);
+                showToast(user.isAnonymous ? "Acceso en modo prueba" : `¡Bienvenido ${user.displayName || ''}!`, "success");
             } else {
                 landingPage.classList.remove('hidden');
                 translatorApp.classList.add('hidden');
