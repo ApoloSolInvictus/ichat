@@ -335,14 +335,15 @@
                     }
                 }
 
-                // Update live preview in UI
+                // Update live preview in UI with accumulated long text
                 const liveCombined = recordedChunks.join(' ') + ' ' + currentInterim;
                 livePreviewText.textContent = cleanDuplicateText(liveCombined) || "Escuchando...";
             };
 
             recognition.onerror = (event) => {
                 console.warn("Speech event warning:", event.error);
-                if (event.error === 'not-allowed') {
+                // Only stop recording if permission is explicitly denied; allow pauses (no-speech) to auto-recover
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
                     isRecording = false;
                     updateUIForRecording(false);
                     showToast("Permiso de micrófono denegado.", "error");
@@ -350,17 +351,24 @@
             };
 
             recognition.onend = () => {
-                // If user hasn't clicked "Terminar", automatically keep listening without clearing history
+                // Keep listening continuously when speaking long sentences or pausing to think
                 if (isRecording) {
+                    clearTimeout(restartTimeout);
                     restartTimeout = setTimeout(() => {
                         if (isRecording) {
                             try {
                                 recognition.start();
                             } catch (e) {
-                                console.warn("Re-start silent error:", e);
+                                // If recognition is already active or recovering, retry smoothly
+                                console.warn("Re-start recovery:", e);
+                                if (isRecording) {
+                                    setTimeout(() => {
+                                        try { recognition.start(); } catch(err) {}
+                                    }, 250);
+                                }
                             }
                         }
-                    }, 100);
+                    }, 50);
                 }
             };
         }
