@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iChat - Traductor de Voz en Vivo IA</title>
+    <title>iChat - Live AI Voice Translator & Real-Time Interpreter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -15,6 +15,27 @@
             background-color: #0f172a;
             color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
+            top: 0px !important;
+            position: static !important;
+        }
+
+        /* Completely suppress Google Translate frame banner, popups, tooltips, and highlights */
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-balloon-frame,
+        #goog-gt-tt,
+        .goog-te-spinner-pos,
+        .goog-tooltip,
+        .goog-tooltip:hover,
+        .goog-text-highlight {
+            display: none !important;
+            visibility: hidden !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        #google_translate_element {
+            display: none !important;
         }
 
         ::-webkit-scrollbar {
@@ -88,259 +109,285 @@
 </head>
 <body class="h-screen w-screen overflow-x-hidden flex flex-col bg-slate-900 text-slate-100">
 
+    <!-- Hidden element for Google Translate JS API -->
+    <div id="google_translate_element"></div>
+
     <!-- LANDING PAGE -->
     <div id="landingPage" class="min-h-screen w-full flex flex-col justify-between hero-gradient px-4 py-8 max-w-4xl mx-auto">
         
         <!-- Header Landing -->
-        <header class="flex justify-between items-center w-full pb-6 border-b border-slate-800">
+        <header class="flex justify-between items-center w-full pb-6 border-b border-slate-800 relative z-50">
             <div class="flex items-center gap-2">
                 <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                     <i class="fa-solid fa-language text-xl"></i>
                 </div>
                 <span class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">iChat</span>
             </div>
-            <button id="loginBtnTop" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs md:text-sm px-5 py-2.5 rounded-full transition-all shadow-md shadow-blue-900/40 flex items-center gap-2">
-                <i class="fa-brands fa-google text-white"></i> Iniciar Sesión
-            </button>
+
+            <div class="flex items-center gap-3">
+                <!-- SATURN PLANET GLOBAL TRANSLATOR MENU -->
+                <div class="relative group" id="saturnMenuContainer">
+                    <button id="saturnBtn" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-purple-500/40 px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-2 transition shadow-md shadow-purple-900/20">
+                        <!-- Saturn Planet SVG -->
+                        <svg class="w-5 h-5 text-purple-400 group-hover:rotate-12 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5" fill="#8b5cf6" fill-opacity="0.2" stroke="#a855f7" />
+                            <ellipse cx="12" cy="12" rx="10" ry="3.5" transform="rotate(-25 12 12)" stroke="#c084fc" stroke-width="1.8" />
+                        </svg>
+                        <span class="hidden sm:inline">Translate Web</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                    </button>
+
+                    <!-- Dropdown Languages List -->
+                    <div id="saturnDropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-800/95 border border-purple-500/30 rounded-2xl shadow-2xl backdrop-blur-xl p-2 z-50 max-h-80 overflow-y-auto">
+                        <div class="text-[10px] font-bold text-purple-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-700/60 mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-earth-americas"></i> Choose Interface Language
+                        </div>
+                        <div class="space-y-0.5 text-xs text-slate-200" id="saturnLangList">
+                            <!-- Populated dynamically via JS with all supported languages -->
+                        </div>
+                    </div>
+                </div>
+
+                <button id="loginBtnTop" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs md:text-sm px-5 py-2 rounded-full transition-all shadow-md shadow-blue-900/40 flex items-center gap-2">
+                    <i class="fa-brands fa-google text-white"></i> Sign In
+                </button>
+            </div>
         </header>
 
         <!-- Hero Section -->
         <main class="flex flex-col items-center text-center my-auto py-10">
             <div class="inline-flex items-center gap-2 bg-purple-900/40 border border-purple-500/30 text-purple-300 px-4 py-1.5 rounded-full text-xs font-semibold mb-6">
-                <i class="fa-solid fa-sparkles text-purple-400"></i> Traducción Simultánea en Tiempo Real
+                <i class="fa-solid fa-sparkles text-purple-400"></i> Simultaneous Real-Time Translation
             </div>
             
             <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight mb-6">
-                Rompe la barrera del idioma en <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Tiempo Real</span>
+                Break language barriers in <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Real Time</span>
             </h1>
             
             <p class="text-slate-400 text-base md:text-lg max-w-2xl mb-8 leading-relaxed">
-                Habla de forma natural en tu idioma y deja que <strong>iChat</strong> interprete tu voz con acentos y dialectos locales al instante con voz HD nativa.
+                Speak naturally in your native language and let <strong>iChat</strong> interpret your voice with local accents and dialects instantly using native HD audio.
                 <br><br>
                 <span class="inline-block bg-green-500/10 border border-green-500/30 text-green-400 px-5 py-2.5 rounded-2xl text-lg font-bold shadow-lg shadow-green-900/20">
-                    <i class="fa-solid fa-infinity mr-1"></i> Solo $14 USD - Único pago de por vida
+                    <i class="fa-solid fa-infinity mr-1"></i> Only $14 USD - One-Time Lifetime Access
                 </span>
             </p>
 
-            <!-- Sección de Login Inicial -->
+            <!-- Initial Login Section -->
             <div id="heroAuthSection" class="w-full flex flex-col items-center">
                 <button id="loginBtnHero" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-base md:text-lg px-8 py-4 rounded-2xl shadow-xl shadow-purple-900/40 transform active:scale-95 transition-all flex items-center gap-3">
-                    <i class="fa-brands fa-google text-xl"></i> Continuar con Google
+                    <i class="fa-brands fa-google text-xl"></i> Continue with Google
                 </button>
             </div>
 
-            <!-- CARD DE PAGO PAYPAL (SE MUESTRA TRAS LOGUEARSE) -->
+            <!-- PAYPAL PAYMENT CARD (SHOWN AFTER LOGGING IN) -->
             <div id="paypalPayCard" class="hidden w-full max-w-md mt-6 p-6 rounded-3xl bg-slate-800/80 border border-purple-500/40 shadow-2xl backdrop-blur-lg flex flex-col items-center text-center animate-fade-in">
                 <div class="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-bold mb-3 border border-green-500/20">
-                    <i class="fa-solid fa-infinity"></i> Acceso De Por Vida
+                    <i class="fa-solid fa-infinity"></i> Lifetime Access
                 </div>
                 
-                <h2 class="text-2xl font-bold text-white mb-1">Plan Único iChat Pro</h2>
-                <p class="text-xs text-slate-400 mb-4">Sin suscripciones mensuales. Un solo pago y usas la app para siempre.</p>
+                <h2 class="text-2xl font-bold text-white mb-1">iChat Pro Lifetime Plan</h2>
+                <p class="text-xs text-slate-400 mb-4">No monthly subscriptions. Pay once and use the app forever.</p>
                 
                 <div class="flex items-baseline gap-1 my-3">
                     <span class="text-5xl font-extrabold text-white">$14</span>
                     <span class="text-sm font-semibold text-slate-400">USD</span>
                 </div>
-                <p class="text-[11px] text-purple-300 mb-6"><i class="fa-solid fa-check text-green-400 mr-1"></i> Traducción e interpretación de voz ilimitada con IA</p>
+                <p class="text-[11px] text-purple-300 mb-6"><i class="fa-solid fa-check text-green-400 mr-1"></i> Unlimited voice translation and AI interpretation</p>
 
                 <div id="paypal-button-container" class="w-full min-h-[50px]"></div>
             </div>
 
-            <!-- Tarjetas de Características -->
+            <!-- Feature Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-16 text-left">
                 <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl hover:border-blue-500/50 transition duration-300">
                     <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-2xl mb-4">
                         <i class="fa-solid fa-microphone-lines"></i>
                     </div>
-                    <h3 class="font-bold text-white text-lg mb-2">Voz Continua IA</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Habla párrafos o ideas largas sin interrupciones. Escucha continua en tiempo real sin pausas incómodas.</p>
+                    <h3 class="font-bold text-white text-lg mb-2">Continuous AI Voice</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Speak full paragraphs or long ideas effortlessly. Continuous real-time listening without awkward pauses.</p>
                 </div>
 
                 <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl hover:border-purple-500/50 transition duration-300">
                     <div class="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-2xl mb-4">
                         <i class="fa-solid fa-earth-americas"></i>
                     </div>
-                    <h3 class="font-bold text-white text-lg mb-2">Léxico Local & Dialectos</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Soporte multi-dialecto para capturar modismos, acentos y expresiones nativas de más de 20 regiones.</p>
+                    <h3 class="font-bold text-white text-lg mb-2">Local Dialects & Slang</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Multi-dialect support capturing native idioms, regional accents, and local phrasing across 20+ regions.</p>
                 </div>
 
                 <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl hover:border-pink-500/50 transition duration-300">
                     <div class="w-12 h-12 bg-pink-500/10 text-pink-400 rounded-xl flex items-center justify-center text-2xl mb-4">
                         <i class="fa-solid fa-volume-high"></i>
                     </div>
-                    <h3 class="font-bold text-white text-lg mb-2">Voz HD Humana Nativa</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Sintetizador inteligente de última generación que reproduce el mensaje traducido con fluidez natural.</p>
+                    <h3 class="font-bold text-white text-lg mb-2">Native HD Human Voice</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Next-generation smart voice synthesizer reproducing translated messages with natural fluency.</p>
                 </div>
             </div>
 
-            <!-- DEMO INTERACTIVA / JUEGO DE APRENDER A DECIR HOLA -->
+            <!-- INTERACTIVE DEMO SECTION -->
             <section class="w-full mt-20 bg-gradient-to-b from-slate-800/80 to-slate-900/90 border border-purple-500/30 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-xl relative overflow-hidden text-left">
                 <div class="absolute -top-24 -right-24 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div class="text-center max-w-2xl mx-auto mb-8">
                     <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-purple-400/30 text-purple-300 px-4 py-1.5 rounded-full text-xs font-bold mb-3">
-                        <i class="fa-solid fa-gamepad text-pink-400"></i> Demo Interactiva en Vivo
+                        <i class="fa-solid fa-gamepad text-pink-400"></i> Live Interactive Demo
                     </div>
                     <h2 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
-                        ¡Prueba el traductor aquí mismo!
+                        Try the translator right here!
                     </h2>
                     <p class="text-slate-400 text-sm md:text-base mt-2">
-                        Selecciona tu idioma natal y el idioma que deseas aprender. Escucha cómo suena el saludo en ambos lados con voz real.
+                        Select your native language and the target language. Listen to how the greeting sounds on both sides with real voice.
                     </p>
                 </div>
 
-                <!-- Selector del Juego -->
+                <!-- Demo Selector -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto mb-6">
                     <div>
-                        <label class="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">1. Tu idioma natal:</label>
+                        <label class="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">1. Your native language:</label>
                         <select id="demoLangFrom" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="es-MX" data-text="¡Hola! ¿Cómo estás?" data-phonetic="¡Hola! ¿Cómo estás?">🇲🇽 Español (Latinoamérica)</option>
-                            <option value="en-US" data-text="Hello! How are you?" data-phonetic="Hel-lo! Hau ar yu?">🇺🇸 Inglés (EE. UU.)</option>
-                            <option value="fr-FR" data-text="Bonjour! Comment ça va?" data-phonetic="Bon-zhur! Ko-man sa va?">🇫🇷 Francés</option>
-                            <option value="de-DE" data-text="Hallo! Wie geht's?" data-phonetic="Ja-lo! Vi gets?">🇩🇪 Alemán</option>
+                            <option value="en-US" data-text="Hello! How are you doing today?" data-phonetic="Hel-lo! Hau ar yu du-ing tu-dey?">🇺🇸 English (US)</option>
+                            <option value="es-MX" data-text="¡Hola! ¿Cómo estás hoy?" data-phonetic="O-la! Ko-mo es-tas oi?">🇲🇽 Spanish (Latin America)</option>
+                            <option value="fr-FR" data-text="Bonjour! Comment allez-vous aujourd'hui?" data-phonetic="Bon-zhur! Ko-man ta-le vu?">🇫🇷 French</option>
+                            <option value="de-DE" data-text="Hallo! Wie geht es dir heute?" data-phonetic="Ja-lo! Vi gets dir hoy-te?">🇩🇪 German</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">2. Idioma a aprender:</label>
+                        <label class="block text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">2. Language to learn:</label>
                         <select id="demoLangTo" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
-                            <option value="ja-JP" data-text="こんにちは！お元気ですか？" data-phonetic="Konnichiwa! O-genki desu ka?">🇯🇵 Japonés</option>
-                            <option value="en-US" data-text="Hello! How are you?" data-phonetic="Hel-lo! Hau ar yu?">🇺🇸 Inglés</option>
-                            <option value="fr-FR" data-text="Bonjour! Comment ça va?" data-phonetic="Bon-zhur! Ko-man sa va?">🇫🇷 Francés</option>
-                            <option value="it-IT" data-text="Ciao! Come stai?" data-phonetic="Chao! Ko-me stai?">🇮🇹 Italiano</option>
-                            <option value="pt-BR" data-text="Olá! Como vai?" data-phonetic="O-la! Ko-mu vai?">🇧🇷 Portugués</option>
-                            <option value="ko-KR" data-text="안녕하세요! 어떻게 지내세요?" data-phonetic="An-nyeong-ha-se-yo!">🇰🇷 Coreano</option>
-                            <option value="zh-CN" data-text="你好！你好吗？" data-phonetic="Nǐ hǎo! Nǐ hǎo ma?">🇨🇳 Chino Mandarín</option>
+                            <option value="ja-JP" data-text="こんにちは！お元気ですか？" data-phonetic="Konnichiwa! O-genki desu ka?">🇯🇵 Japanese</option>
+                            <option value="es-ES" data-text="¡Hola! ¿Cómo estás?" data-phonetic="OH-lah! Koh-moh ehs-TAHS?">🇪🇸 Spanish</option>
+                            <option value="fr-FR" data-text="Bonjour! Comment ça va?" data-phonetic="Bon-zhur! Ko-man sa va?">🇫🇷 French</option>
+                            <option value="it-IT" data-text="Ciao! Come stai?" data-phonetic="Chao! Ko-me stai?">🇮🇹 Italian</option>
+                            <option value="pt-BR" data-text="Olá! Como vai você?" data-phonetic="O-la! Ko-mu vai vo-se?">🇧🇷 Portuguese</option>
+                            <option value="ko-KR" data-text="안녕하세요! 어떻게 지내세요?" data-phonetic="An-nyeong-ha-se-yo!">🇰🇷 Korean</option>
+                            <option value="zh-CN" data-text="你好！你今天怎么样？" data-phonetic="Nǐ hǎo! Nǐ jīn tiān zěn me yàng?">🇨🇳 Mandarin Chinese</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Chat Simulado Interactivo -->
+                <!-- Interactive Simulated Chat -->
                 <div class="max-w-xl mx-auto bg-slate-900/90 border border-slate-700/80 rounded-2xl p-5 shadow-inner space-y-4">
-                    <!-- Mensaje Origen -->
+                    <!-- Source Message -->
                     <div class="flex flex-col items-start bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4">
                         <div class="flex items-center justify-between w-full mb-1">
                             <span class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-user text-blue-400"></i> Tu Idioma Natal
+                                <i class="fa-solid fa-user text-blue-400"></i> Your Native Language
                             </span>
                             <button id="btnPlayDemoFrom" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
-                                <i class="fa-solid fa-volume-high"></i> Escuchar
+                                <i class="fa-solid fa-volume-high"></i> Listen
                             </button>
                         </div>
-                        <p id="demoTextFrom" class="text-white text-lg font-bold">¡Hola! ¿Cómo estás?</p>
-                        <p id="demoPhoneticFrom" class="text-xs text-blue-300 italic mt-0.5">Español</p>
+                        <p id="demoTextFrom" class="text-white text-lg font-bold">Hello! How are you doing today?</p>
+                        <p id="demoPhoneticFrom" class="text-xs text-blue-300 italic mt-0.5">English</p>
                     </div>
 
-                    <!-- Indicador de Traducción -->
+                    <!-- Translation Indicator -->
                     <div class="flex items-center justify-center text-slate-500 text-xs font-semibold gap-2">
                         <div class="h-px bg-slate-700 flex-1"></div>
                         <span class="bg-slate-800 px-3 py-1 rounded-full text-purple-300 border border-purple-500/20 flex items-center gap-1">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Traducción Simultánea IA
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Simultaneous AI Translation
                         </span>
                         <div class="h-px bg-slate-700 flex-1"></div>
                     </div>
 
-                    <!-- Mensaje Traducido -->
+                    <!-- Translated Message -->
                     <div class="flex flex-col items-start bg-purple-950/40 border border-purple-500/30 rounded-2xl p-4">
                         <div class="flex items-center justify-between w-full mb-1">
                             <span class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-robot text-purple-400"></i> Traducción & Voz HD
+                                <i class="fa-solid fa-robot text-purple-400"></i> Translation & HD Voice
                             </span>
                             <button id="btnPlayDemoTo" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
-                                <i class="fa-solid fa-volume-high"></i> Escuchar
+                                <i class="fa-solid fa-volume-high"></i> Listen
                             </button>
                         </div>
                         <p id="demoTextTo" class="text-white text-lg font-bold">こんにちは！お元気ですか？</p>
-                        <p id="demoPhoneticTo" class="text-xs text-purple-300 italic mt-0.5">Pronunciación: Konnichiwa! O-genki desu ka?</p>
+                        <p id="demoPhoneticTo" class="text-xs text-purple-300 italic mt-0.5">Pronunciation: Konnichiwa! O-genki desu ka?</p>
                     </div>
                 </div>
 
                 <div class="text-center mt-6">
                     <p class="text-xs text-slate-400 mb-3">
-                        <i class="fa-solid fa-circle-check text-green-400 mr-1"></i> La versión completa interpreta discursos completos, conversaciones largas y modismos locales.
+                        <i class="fa-solid fa-circle-check text-green-400 mr-1"></i> The full version interprets extended speeches, live conversations, and local slang.
                     </p>
                     <a href="#heroAuthSection" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm px-6 py-3 rounded-full shadow-lg shadow-purple-900/40 transition active:scale-95">
-                        <i class="fa-solid fa-bolt"></i> Obtener iChat Pro por $14 USD
+                        <i class="fa-solid fa-bolt"></i> Get iChat Pro for $14 USD
                     </a>
                 </div>
             </section>
 
-            <!-- CÓMO FUNCIONA ICHAT (PASOS ILUSTRADOS CON SVG) -->
+            <!-- HOW ICHAT WORKS SECTION -->
             <section class="w-full mt-24 text-left">
                 <div class="text-center max-w-2xl mx-auto mb-12">
                     <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-3">
-                        ¿Cómo funciona iChat en 3 pasos?
+                        How iChat Works in 3 Steps
                     </h2>
                     <p class="text-slate-400 text-sm md:text-base">
-                        Diseñado para conversaciones dinámicas presenciales o remotas sin complicaciones técnicas.
+                        Engineered for effortless dynamic conversations—in person or remotely.
                     </p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Paso 1 -->
+                    <!-- Step 1 -->
                     <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
                         <div>
                             <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 font-black text-lg flex items-center justify-center mb-4">
                                 1
                             </div>
-                            <!-- Ilustración SVG 1 -->
                             <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
                                 <svg class="w-24 h-24 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a24.12 24.12 0 018.653-.622m0 0A24.147 24.147 0 0112 18a24.135 24.135 0 01-4.015-10.378M3 5.621C4.301 3.518 6.452 2.25 9 2.25c2.548 0 4.699 1.268 6 3.371M3 5.621A24.12 24.12 0 0012 18"></path>
                                 </svg>
                             </div>
-                            <h3 class="font-bold text-white text-lg mb-2">Selecciona tus Idiomas</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Elige tu idioma nativo y el idioma de tu interlocutor de una lista con más de 20 dialectos globales.</p>
+                            <h3 class="font-bold text-white text-lg mb-2">Select Your Languages</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Choose your native language and your partner's language from over 20 global dialects.</p>
                         </div>
                     </div>
 
-                    <!-- Paso 2 -->
+                    <!-- Step 2 -->
                     <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
                         <div>
                             <div class="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 font-black text-lg flex items-center justify-center mb-4">
                                 2
                             </div>
-                            <!-- Ilustración SVG 2 -->
                             <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
                                 <svg class="w-24 h-24 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"></path>
                                 </svg>
                             </div>
-                            <h3 class="font-bold text-white text-lg mb-2">Presiona y Habla</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Habla de forma natural por el micrófono. La tecnología de escucha continua transcribe tus palabras al instante.</p>
+                            <h3 class="font-bold text-white text-lg mb-2">Press & Speak</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Speak naturally into the microphone. Continuous listening transcribes your speech in real time.</p>
                         </div>
                     </div>
 
-                    <!-- Paso 3 -->
+                    <!-- Step 3 -->
                     <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
                         <div>
                             <div class="w-10 h-10 rounded-full bg-green-500/20 text-green-400 font-black text-lg flex items-center justify-center mb-4">
                                 3
                             </div>
-                            <!-- Ilustración SVG 3 -->
                             <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
                                 <svg class="w-24 h-24 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.287a5.25 5.25 0 010 7.426M13.812 10.938a1.5 1.5 0 010 2.124M12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5z"></path>
                                 </svg>
                             </div>
-                            <h3 class="font-bold text-white text-lg mb-2">Escucha en Voz HD</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">La inteligencia artificial traduce el significado exacto y lo reproduce en altavoz con pronunciación fluida.</p>
+                            <h3 class="font-bold text-white text-lg mb-2">Listen in HD Voice</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Artificial intelligence translates the exact meaning and plays it back with natural speaker pronunciation.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- TABLA COMPARATIVA DE VALOR DE POR VIDA -->
+            <!-- COMPARISON TABLE SECTION -->
             <section class="w-full mt-24 text-left bg-slate-800/30 border border-slate-700/50 rounded-3xl p-6 md:p-10">
                 <div class="text-center max-w-2xl mx-auto mb-10">
-                    <span class="text-xs font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3.5 py-1 rounded-full">Inversión Inteligente</span>
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3.5 py-1 rounded-full">Smart Investment</span>
                     <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight mt-3 mb-2">
-                        ¿Por qué $14 USD de por vida?
+                        Why $14 USD Lifetime?
                     </h2>
                     <p class="text-slate-400 text-sm md:text-base">
-                        Olvídate de cobros recurrentes en tu tarjeta. Compara nuestro modelo frente a otros traductores convencionales:
+                        Forget recurring credit card charges. Compare our model against traditional voice translators:
                     </p>
                 </div>
 
@@ -348,46 +395,46 @@
                     <table class="w-full text-left border-collapse min-w-[500px]">
                         <thead>
                             <tr class="border-b border-slate-700 text-slate-300 text-sm">
-                                <th class="py-4 px-4 font-bold">Característica</th>
-                                <th class="py-4 px-4 font-bold text-slate-400">Otros Traductores</th>
+                                <th class="py-4 px-4 font-bold">Feature</th>
+                                <th class="py-4 px-4 font-bold text-slate-400">Other Translators</th>
                                 <th class="py-4 px-4 font-extrabold text-purple-400 bg-purple-950/30 rounded-t-xl">iChat Pro</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-sm">
                             <tr>
-                                <td class="py-4 px-4 font-medium text-white">Costo de uso</td>
-                                <td class="py-4 px-4 text-red-400">$15 - $25 USD / mes ($180/año)</td>
-                                <td class="py-4 px-4 font-bold text-green-400 bg-purple-950/20">$14 USD (Pago único de por vida)</td>
+                                <td class="py-4 px-4 font-medium text-white">Usage Cost</td>
+                                <td class="py-4 px-4 text-red-400">$15 - $25 USD / month ($180/year)</td>
+                                <td class="py-4 px-4 font-bold text-green-400 bg-purple-950/20">$14 USD (One-time lifetime payment)</td>
                             </tr>
                             <tr>
-                                <td class="py-4 px-4 font-medium text-white">Voz Humana HD</td>
-                                <td class="py-4 px-4 text-slate-400">Voz robótica limitada</td>
-                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Sintetizador de alta fidelidad</td>
+                                <td class="py-4 px-4 font-medium text-white">HD Human Voice</td>
+                                <td class="py-4 px-4 text-slate-400">Robotic basic voice</td>
+                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> High-fidelity speech synthesizer</td>
                             </tr>
                             <tr>
-                                <td class="py-4 px-4 font-medium text-white">Reconocimiento Dialectal</td>
-                                <td class="py-4 px-4 text-slate-400">Solo idiomas generales</td>
-                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Modismos regionales nativos</td>
+                                <td class="py-4 px-4 font-medium text-white">Dialect Recognition</td>
+                                <td class="py-4 px-4 text-slate-400">Standard languages only</td>
+                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Native regional idioms & slang</td>
                             </tr>
                             <tr>
-                                <td class="py-4 px-4 font-medium text-white">Publicidad molesta</td>
-                                <td class="py-4 px-4 text-red-400">Anuncios constantes</td>
-                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> 100% Sin anuncios</td>
+                                <td class="py-4 px-4 font-medium text-white">Annoying Ads</td>
+                                <td class="py-4 px-4 text-red-400">Constant video ads</td>
+                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> 100% Ad-free experience</td>
                             </tr>
                             <tr>
-                                <td class="py-4 px-4 font-medium text-white">Acceso Multi-dispositivo</td>
-                                <td class="py-4 px-4 text-slate-400">Restringido a un dispositivo</td>
-                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Web, Móvil, Tablet y PC</td>
+                                <td class="py-4 px-4 font-medium text-white">Multi-device Access</td>
+                                <td class="py-4 px-4 text-slate-400">Restricted to 1 device</td>
+                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Web, Mobile, Tablet & PC</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- CASOS DE USO -->
+            <!-- USE CASES -->
             <section class="w-full mt-24 text-left">
                 <div class="text-center max-w-2xl mx-auto mb-10">
-                    <h2 class="text-3xl font-bold text-white">Perfecto para cualquier situación</h2>
+                    <h2 class="text-3xl font-bold text-white">Perfect for Any Situation</h2>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -396,8 +443,8 @@
                             <i class="fa-solid fa-plane"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-white text-base mb-1">Viajes al Extranjero</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Pide indicaciones, ordena en restaurantes y habla con lugareños como si dominaras el idioma local.</p>
+                            <h3 class="font-bold text-white text-base mb-1">Overseas Travel</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Ask for directions, order at restaurants, and talk to locals like a native speaker.</p>
                         </div>
                     </div>
 
@@ -406,8 +453,8 @@
                             <i class="fa-solid fa-briefcase"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-white text-base mb-1">Reuniones de Negocios</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Entabla negociaciones con clientes internacionales sin malentendidos ni barreras lingüísticas.</p>
+                            <h3 class="font-bold text-white text-base mb-1">Business Meetings</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Conduct smooth negotiations with international clients without misunderstandings.</p>
                         </div>
                     </div>
 
@@ -416,8 +463,8 @@
                             <i class="fa-solid fa-graduation-cap"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-white text-base mb-1">Aprendizaje de Idiomas</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Aprende la pronunciación correcta reproduciendo el audio en ambos idiomas tantas veces como quieras.</p>
+                            <h3 class="font-bold text-white text-base mb-1">Language Learning</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Master natural pronunciation by replaying translated audio in both languages as often as you like.</p>
                         </div>
                     </div>
 
@@ -426,62 +473,62 @@
                             <i class="fa-solid fa-people-arrows"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-white text-base mb-1">Amigos & Familiares</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Comunícate con familiares o amigos internacionales de forma cálida, cercana y directa.</p>
+                            <h3 class="font-bold text-white text-base mb-1">Friends & Family</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Connect with international family members or friends in a warm, direct manner.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- PREGUNTAS FRECUENTES (FAQ) -->
+            <!-- FAQ SECTION -->
             <section class="w-full mt-24 text-left max-w-3xl mx-auto">
-                <h2 class="text-3xl font-bold text-white text-center mb-8">Preguntas Frecuentes</h2>
+                <h2 class="text-3xl font-bold text-white text-center mb-8">Frequently Asked Questions</h2>
 
                 <div class="space-y-4">
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
-                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-blue-400 mr-2"></i> ¿El pago de $14 USD es realmente único?</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">Sí, absolutamente. Haces un único pago seguro por PayPal y obtienes acceso Pro de por vida para tu cuenta de Google sin suscripciones ni mensualidades ocultas.</p>
+                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-blue-400 mr-2"></i> Is the $14 USD payment truly one-time?</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Yes, absolutely. Make a single secure payment via PayPal and get Pro lifetime access for your Google account with no subscriptions or hidden fees.</p>
                     </div>
 
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
-                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-purple-400 mr-2"></i> ¿En qué dispositivos puedo usar iChat?</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">Funciona en cualquier teléfono inteligente (iOS/Android), tablet o computadora con un navegador web moderno (Chrome, Safari, Edge, Firefox).</p>
+                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-purple-400 mr-2"></i> Which devices can I use iChat on?</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">It works seamlessly on any smartphone (iOS/Android), tablet, or desktop computer using a modern web browser (Chrome, Safari, Edge, Firefox).</p>
                     </div>
 
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
-                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-green-400 mr-2"></i> ¿Mis datos de voz están seguros?</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">Sí. El audio se procesa en tiempo real para traducirse de forma efímera y no se almacena en servidores públicos. Cumplimos con las políticas de privacidad de Google y PayPal.</p>
+                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-green-400 mr-2"></i> Is my voice data secure?</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Yes. Speech is processed transiently in real time and is never stored on public servers. We comply fully with Google User Data & PayPal security standards.</p>
                     </div>
                 </div>
             </section>
 
-            <!-- BANNER FINAL DE LLAMADA A LA ACCIÓN -->
+            <!-- CALL TO ACTION BANNER -->
             <section class="w-full mt-20 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-8 md:p-12 text-center shadow-2xl">
                 <h2 class="text-3xl md:text-5xl font-black text-white mb-4">
-                    ¿Listo para comunicarte con el mundo?
+                    Ready to communicate with the world?
                 </h2>
                 <p class="text-white/90 text-sm md:text-base max-w-xl mx-auto mb-8 font-medium">
-                    Únete hoy mismo con un único pago de $14 USD de por vida y desbloquea la traducción simultánea de voz con IA.
+                    Join today with a single $14 USD lifetime payment and unlock AI-powered simultaneous voice translation.
                 </p>
                 <a href="#heroAuthSection" class="bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-base px-8 py-4 rounded-2xl shadow-xl transition transform active:scale-95 inline-flex items-center gap-2">
-                    <i class="fa-solid fa-rocket text-purple-600"></i> Comenzar Ahora por $14 USD
+                    <i class="fa-solid fa-rocket text-purple-600"></i> Get Started Now for $14 USD
                 </a>
             </section>
         </main>
 
         <footer class="text-center text-slate-500 text-xs py-8 border-t border-slate-800/60 mt-12">
             <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <span>© 2026 iChat Voice Translator. Todos los derechos reservados.</span>
+                <span>© 2026 iChat Voice Translator. All rights reserved.</span>
                 <div class="flex gap-4">
-                    <a href="privacidad.html" class="text-slate-400 hover:text-white transition">Política de Privacidad</a>
-                    <a href="#heroAuthSection" class="text-slate-400 hover:text-white transition">Iniciar Sesión</a>
+                    <a href="privacidad.html" class="text-slate-400 hover:text-white transition">Privacy Policy</a>
+                    <a href="#heroAuthSection" class="text-slate-400 hover:text-white transition">Sign In</a>
                 </div>
             </div>
         </footer>
     </div>
 
 
-    <!-- WEB APP PRINCIPAL -->
+    <!-- MAIN WEB APP INTERFACE -->
     <div id="translatorApp" class="hidden h-screen w-screen flex flex-col overflow-hidden relative">
 
         <header class="bg-slate-800 pt-6 pb-4 px-6 shadow-md z-10 flex justify-between items-center relative">
@@ -490,7 +537,16 @@
             </h1>
             <div class="flex items-center gap-3">
                 <span id="userEmail" class="text-xs text-slate-400 hidden sm:inline"></span>
-                <button id="logoutBtn" title="Cerrar Sesión" class="text-slate-400 hover:text-red-400 text-sm bg-slate-700/60 p-2 rounded-xl border border-slate-600 transition">
+                
+                <!-- SATURN PLANET BUTTON IN MAIN APP HEADER -->
+                <button id="saturnBtnApp" class="bg-slate-700/80 hover:bg-slate-600 text-purple-300 p-2 rounded-xl border border-purple-500/30 transition shadow flex items-center gap-1.5 text-xs font-semibold" title="Translate Page">
+                    <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" fill="#8b5cf6" fill-opacity="0.2" stroke="#a855f7" />
+                        <ellipse cx="12" cy="12" rx="10" ry="3.5" transform="rotate(-25 12 12)" stroke="#c084fc" stroke-width="1.8" />
+                    </svg>
+                </button>
+
+                <button id="logoutBtn" title="Sign Out" class="text-slate-400 hover:text-red-400 text-sm bg-slate-700/60 p-2 rounded-xl border border-slate-600 transition">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
@@ -498,17 +554,17 @@
 
         <div class="bg-slate-800/50 p-4 shadow-sm z-10 flex gap-2 border-b border-slate-700/50">
             <div class="flex-1 relative">
-                <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Hablas en</label>
+                <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">You Speak</label>
                 <select id="langFrom" class="w-full bg-slate-700 text-white rounded-xl py-2.5 pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition border border-slate-600 shadow-inner">
                 </select>
             </div>
             <div class="flex flex-col justify-end pb-1">
-                <button id="swapLangs" title="Intercambiar Idiomas" class="w-9 h-9 rounded-full bg-slate-700 text-blue-400 hover:bg-slate-600 hover:text-white transition flex items-center justify-center border border-slate-600 active:scale-90">
+                <button id="swapLangs" title="Swap Languages" class="w-9 h-9 rounded-full bg-slate-700 text-blue-400 hover:bg-slate-600 hover:text-white transition flex items-center justify-center border border-slate-600 active:scale-90">
                     <i class="fa-solid fa-arrow-right-arrow-left text-xs"></i>
                 </button>
             </div>
             <div class="flex-1 relative">
-                <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Traducir a</label>
+                <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Translate To</label>
                 <select id="langTo" class="w-full bg-slate-700 text-white rounded-xl py-2.5 pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-purple-500 transition border border-slate-600 shadow-inner">
                 </select>
             </div>
@@ -517,7 +573,7 @@
         <main id="chatArea" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-36">
             <div id="welcomeMessage" class="text-center text-slate-400 text-sm mt-6 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
                 <i class="fa-solid fa-microphone-slash text-2xl text-blue-400 mb-2 block"></i>
-                Selecciona los idiomas, presiona el micrófono para hablar y toca <strong>Terminar</strong> para traducir al instante con voz HD.
+                Select languages, press the microphone to speak, and tap <strong>Finish</strong> to translate instantly with HD voice.
             </div>
             
             <div id="livePreviewContainer" class="hidden w-full my-2 bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4 transition-all">
@@ -526,10 +582,10 @@
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                     </span>
-                    Escuchando en vivo...
+                    Listening live...
                 </div>
                 <p id="livePreviewText" class="text-slate-200 text-sm italic min-h-[20px]">
-                    Habla ahora...
+                    Speak now...
                 </p>
             </div>
         </main>
@@ -544,13 +600,13 @@
                 </div>
                 
                 <button id="stopBtn" class="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-4 rounded-full font-bold shadow-lg shadow-red-900/50 hover:from-red-400 hover:to-rose-500 active:scale-95 hidden flex items-center gap-2 transform transition-all">
-                    <i class="fa-solid fa-check"></i> Terminar
+                    <i class="fa-solid fa-check"></i> Finish
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Indicador de Estado / Toast -->
+    <!-- Status Indicator / Toast Notification -->
     <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl border border-slate-700 opacity-0 translate-y-[-20px] z-50 flex items-center gap-3 pointer-events-none">
         <i id="toastIcon" class="fa-solid fa-info-circle text-blue-400"></i>
         <span id="toastMessage" class="font-medium text-sm"></span>
@@ -571,15 +627,12 @@
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // 👑 LISTA BLANCA DE DESARROLLADORES Y ADMINISTRADORES
-        // Agrega aquí los correos de Google con los que quieras entrar GRATIS siempre:
+        // Developer & Administrator Whitelist
         const ADMIN_EMAILS = [
-            'ronnywoods77@gmail.com',  // <-- Reemplaza por tu correo de Google
-            'info@wstudio3d.com'      // Correo de tu empresa / proyecto
+            'ronnywoods77@gmail.com',
+            'info@wstudio3d.com'
         ];
 
-        // ⚠️ REEMPLAZA ESTOS VALORES CON TUS CREDENCIALES REALES DE FIREBASE CONSOLE
-        // Obtén estos datos en: Firebase Console -> Configuración del proyecto (⚙️) -> General -> Tus aplicaciones
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
@@ -612,11 +665,11 @@
                 checkUserPaymentAndGrantAccess(result.user);
             }
         }).catch((err) => {
-            console.warn("Error en resultado de redirección:", err);
+            console.warn("Redirect error:", err);
         });
 
         async function handleGoogleLogin() {
-            showToast("Conectando con Google...", "sync");
+            showToast("Connecting with Google...", "sync");
             
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -624,43 +677,37 @@
                     return;
                 }
 
-                // Intenta abrir el Pop-Up estándar de Google
                 const result = await signInWithPopup(auth, provider);
                 if (result && result.user) {
                     checkUserPaymentAndGrantAccess(result.user);
                 }
             } catch (popupErr) {
-                console.error("Detalle de error Google Auth:", popupErr);
+                console.error("Google Auth error:", popupErr);
 
-                let errorTitle = "Error de Autenticación";
-                let errorMsg = popupErr.message || "No se pudo conectar con Google.";
+                let errorTitle = "Authentication Error";
+                let errorMsg = popupErr.message || "Failed to connect with Google.";
 
-                // Diagnóstico preciso de errores de Firebase
                 if (popupErr.code === 'auth/unauthorized-domain') {
-                    errorTitle = "Dominio No Autorizado en Firebase";
-                    errorMsg = "Debes agregar 'ichat.wstudio3d.com' en Firebase Console -> Authentication -> Settings -> Authorized Domains.";
-                } else if (popupErr.code === 'auth/invalid-api-key' || popupErr.code === 'auth/api-key-not-valid-please-pass-a-valid-api-key') {
-                    errorTitle = "API Key Inválida";
-                    errorMsg = "Sustituye la API Key de ejemplo en index.html por tus credenciales reales de Firebase.";
-                } else if (popupErr.code === 'auth/operation-not-allowed') {
-                    errorTitle = "Proveedor Deshabilitado";
-                    errorMsg = "Habilita el inicio de sesión con Google en Firebase Console -> Authentication -> Sign-in method.";
+                    errorTitle = "Unauthorized Domain";
+                    errorMsg = "Add 'ichat.wstudio3d.com' in Firebase Console -> Auth -> Authorized Domains.";
+                } else if (popupErr.code === 'auth/invalid-api-key') {
+                    errorTitle = "Invalid API Key";
+                    errorMsg = "Replace the sample API key in index.html with your production Firebase keys.";
                 } else if (popupErr.code === 'auth/popup-blocked') {
-                    showToast("Ventana emergente bloqueada. Redirigiendo...", "sync");
+                    showToast("Popup blocked. Redirecting...", "sync");
                     try {
                         await signInWithRedirect(auth, provider);
                         return;
                     } catch (redErr) {
-                        console.error("Error en Redirect:", redErr);
+                        console.error("Redirect Error:", redErr);
                     }
                 } else if (popupErr.code === 'auth/popup-closed-by-user') {
-                    showToast("Inicio de sesión cancelado.", "warning");
+                    showToast("Login cancelled.", "warning");
                     return;
                 }
 
                 showToast(`⚠️ ${errorTitle}: ${errorMsg}`, "error");
 
-                // Fallback automático en caso de falta de credenciales reales
                 setTimeout(async () => {
                     try {
                         const anonRes = await signInAnonymously(auth);
@@ -669,7 +716,7 @@
                         const localDemoUser = {
                             uid: 'demo_user_wstudio3d',
                             email: 'demo@ichat.wstudio3d.com',
-                            displayName: 'Usuario Demo'
+                            displayName: 'Demo User'
                         };
                         checkUserPaymentAndGrantAccess(localDemoUser);
                     }
@@ -684,7 +731,7 @@
             try {
                 await signOut(auth);
             } catch (e) {
-                console.warn("Nota de cierre de sesión:", e);
+                console.warn("Sign out note:", e);
             }
             if (currentUser) {
                 localStorage.removeItem(`ichat_paid_${currentUser.uid}`);
@@ -695,25 +742,24 @@
             translatorApp.classList.add('hidden');
             heroAuthSection.classList.remove('hidden');
             paypalPayCard.classList.add('hidden');
-            showToast("Sesión cerrada correctamente", "info");
+            showToast("Signed out successfully", "info");
         });
 
         async function checkUserPaymentAndGrantAccess(user) {
             currentUser = user;
             const paidLocally = localStorage.getItem(`ichat_paid_${user.uid}`);
             
-            // Verificamos si el correo con el que inició sesión es un Administrador/Desarrollador
             const isAdmin = user.email && ADMIN_EMAILS.some(email => email.toLowerCase() === user.email.toLowerCase());
 
             if (paidLocally === 'true' || isAdmin) {
                 landingPage.classList.add('hidden');
                 translatorApp.classList.remove('hidden');
-                userEmail.textContent = (user.email || user.displayName || "Usuario Pro") + (isAdmin ? " 👑 (Dev)" : "");
+                userEmail.textContent = (user.email || user.displayName || "Pro User") + (isAdmin ? " 👑 (Dev)" : "");
                 
                 if (isAdmin) {
-                    showToast("¡Modo Desarrollador Activado! 👑", "success");
+                    showToast("Developer Mode Activated! 👑", "success");
                 } else {
-                    showToast("¡Bienvenido a iChat Pro!", "success");
+                    showToast("Welcome to iChat Pro!", "success");
                 }
             } else {
                 landingPage.classList.remove('hidden');
@@ -727,13 +773,13 @@
 
         async function loadPayPalSDKAndRender(user) {
             const container = document.getElementById('paypal-button-container');
-            container.innerHTML = '<div class="text-blue-400 text-sm animate-pulse flex items-center justify-center py-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Conectando con PayPal...</div>';
+            container.innerHTML = '<div class="text-blue-400 text-sm animate-pulse flex items-center justify-center py-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Connecting to PayPal...</div>';
             
             try {
                 const res = await fetch('/api/paypal');
                 
                 if (!res.ok) {
-                    throw new Error(`Error del servidor (${res.status}) al conectar con /api/paypal`);
+                    throw new Error(`Server error (${res.status}) connecting to /api/paypal`);
                 }
                 
                 const data = await res.json();
@@ -741,10 +787,10 @@
                 if (!data.clientId) {
                     container.innerHTML = `
                         <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> <strong>Falta PAYPAL_CLIENT_ID:</strong> Agrega esta variable en Vercel para procesar pagos reales.
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> <strong>Missing PAYPAL_CLIENT_ID:</strong> Set this variable in Vercel to process live payments.
                         </div>
                         <button id="devSkipPayBtn" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-green-900/30 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i> Probar App / Saltar Pago (Modo Prueba)
+                            <i class="fa-solid fa-unlock-keyhole"></i> Try App / Skip Payment (Test Mode)
                         </button>
                     `;
                     document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
@@ -762,23 +808,23 @@
                 script.onerror = () => {
                      container.innerHTML = `
                         <div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl text-red-300 text-xs mb-3 text-left">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> No se pudo cargar el SDK de PayPal. Revisa el Client ID o tu conexión.
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Failed to load PayPal SDK. Please check Client ID.
                         </div>
                         <button id="devSkipPayBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-3 rounded-xl text-sm w-full transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i> Probar App (Modo Prueba)
+                            <i class="fa-solid fa-unlock-keyhole"></i> Try App (Test Mode)
                         </button>
                      `;
                      document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
                 };
                 document.head.appendChild(script);
             } catch (err) {
-                console.error("Error cargando SDK de PayPal:", err);
+                console.error("PayPal SDK loading error:", err);
                 container.innerHTML = `
                     <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
-                        <i class="fa-solid fa-info-circle text-amber-400 mr-1"></i> Backend de PayPal no detectado en el dominio actual.
+                        <i class="fa-solid fa-info-circle text-amber-400 mr-1"></i> PayPal backend endpoint not found.
                     </div>
                     <button id="devSkipPayBtn" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-rocket"></i> Entrar al Traductor (Modo Prueba)
+                        <i class="fa-solid fa-rocket"></i> Launch Translator (Test Mode)
                     </button>
                 `;
                 document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
@@ -789,8 +835,8 @@
             localStorage.setItem(`ichat_paid_${user.uid}`, 'true');
             landingPage.classList.add('hidden');
             translatorApp.classList.remove('hidden');
-            userEmail.textContent = user.email || user.displayName || "Usuario Pro";
-            showToast("Acceso concedido (Modo Prueba)", "success");
+            userEmail.textContent = user.email || user.displayName || "Pro User";
+            showToast("Access granted (Test Mode)", "success");
         }
 
         function renderPayPalButton(user) {
@@ -813,7 +859,7 @@
                         });
                         const order = await res.json();
                         if (!order.id) {
-                            showToast("Error creando orden de PayPal. Revisa credenciales.", "error");
+                            showToast("Error creating PayPal order.", "error");
                             throw new Error("No order ID returned");
                         }
                         return order.id;
@@ -827,15 +873,15 @@
                         const details = await res.json();
                         
                         if (details.status === 'COMPLETED') {
-                            showToast("¡Pago exitoso! Activando tu cuenta...", "success");
+                            showToast("Payment successful! Activating account...", "success");
                             grantAccess(user);
                         } else {
-                            showToast("El pago no pudo ser procesado.", "error");
+                            showToast("Payment could not be processed.", "error");
                         }
                     },
                     onError: function(err) {
-                        console.error("Error PayPal:", err);
-                        showToast("Error procesando el pago. Intenta de nuevo.", "error");
+                        console.error("PayPal Error:", err);
+                        showToast("Error processing payment. Please try again.", "error");
                     }
                 }).render('#paypal-button-container');
             }
@@ -853,9 +899,109 @@
         });
     </script>
 
-    <!-- JS PRINCIPAL DEL TRADUCTOR -->
+    <!-- MAIN TRANSLATOR JS & GOOGLE TRANSLATE SATURN PLANET INTEGRATION -->
     <script>
-        // LOGICA DE LA DEMO INTERACTIVA EN EL LANDING PAGE
+        // Supported Languages List (All matching Web App languages)
+        const languages = [
+            { code: 'en-US', gtCode: 'en', name: 'English (US)', flag: '🇺🇸' },
+            { code: 'en-GB', gtCode: 'en', name: 'English (UK)', flag: '🇬🇧' },
+            { code: 'es-MX', gtCode: 'es', name: 'Español (México)', flag: '🇲🇽' },
+            { code: 'es-ES', gtCode: 'es', name: 'Español (España)', flag: '🇪🇸' },
+            { code: 'es-AR', gtCode: 'es', name: 'Español (Argentina)', flag: '🇦🇷' },
+            { code: 'es-CO', gtCode: 'es', name: 'Español (Colombia)', flag: '🇨🇴' },
+            { code: 'fr-FR', gtCode: 'fr', name: 'Français (France)', flag: '🇫🇷' },
+            { code: 'fr-CA', gtCode: 'fr', name: 'Français (Canada)', flag: '🇨🇦' },
+            { code: 'pt-BR', gtCode: 'pt', name: 'Português (Brasil)', flag: '🇧🇷' },
+            { code: 'pt-PT', gtCode: 'pt', name: 'Português (Portugal)', flag: '🇵🇹' },
+            { code: 'de-DE', gtCode: 'de', name: 'Deutsch (German)', flag: '🇩🇪' },
+            { code: 'it-IT', gtCode: 'it', name: 'Italiano (Italian)', flag: '🇮🇹' },
+            { code: 'ja-JP', gtCode: 'ja', name: '日本語 (Japanese)', flag: '🇯🇵' },
+            { code: 'ko-KR', gtCode: 'ko', name: '한국어 (Korean)', flag: '🇰🇷' },
+            { code: 'zh-CN', gtCode: 'zh-CN', name: '中文 (Mandarin)', flag: '🇨🇳' },
+            { code: 'ru-RU', gtCode: 'ru', name: 'Русский (Russian)', flag: '🇷🇺' },
+            { code: 'ar-SA', gtCode: 'ar', name: 'العربية (Arabic)', flag: '🇸🇦' },
+            { code: 'hi-IN', gtCode: 'hi', name: 'हिन्दी (Hindi)', flag: '🇮🇳' }
+        ];
+
+        // GOOGLE TRANSLATION SCRIPT INITIALIZATION (No popups or banners)
+        function googleTranslateElementInit() {
+            if (window.google && window.google.translate) {
+                new window.google.translate.TranslateElement({
+                    pageLanguage: 'en',
+                    includedLanguages: 'en,es,fr,pt,de,it,ja,ko,zh-CN,ru,ar,hi',
+                    autoDisplay: false,
+                    layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
+                }, 'google_translate_element');
+            }
+        }
+
+        // Dynamically load Google Translate Script
+        (function loadGoogleTranslateScript() {
+            const s = document.createElement('script');
+            s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+            s.async = true;
+            document.head.appendChild(s);
+        })();
+
+        // SILENTLY TRIGGER GOOGLE TRANSLATE WITHOUT POPUPS
+        function triggerGoogleTranslate(targetGtCode) {
+            const gtCombo = document.querySelector('.goog-te-combo');
+            if (gtCombo) {
+                gtCombo.value = targetGtCode;
+                gtCombo.dispatchEvent(new Event('change'));
+                showToast(`Interface translated to ${targetGtCode.toUpperCase()}`, "success");
+            } else {
+                showToast("Translation engine loading... Please try again in a second.", "sync");
+                setTimeout(() => triggerGoogleTranslate(targetGtCode), 800);
+            }
+        }
+
+        // SATURN PLANET DROPDOWN SETUP
+        const saturnBtn = document.getElementById('saturnBtn');
+        const saturnBtnApp = document.getElementById('saturnBtnApp');
+        const saturnDropdown = document.getElementById('saturnDropdown');
+        const saturnLangList = document.getElementById('saturnLangList');
+
+        function populateSaturnMenu() {
+            if (!saturnLangList) return;
+            saturnLangList.innerHTML = '';
+
+            languages.forEach(lang => {
+                const item = document.createElement('button');
+                item.className = "w-full text-left px-3 py-2 rounded-xl hover:bg-purple-900/40 hover:text-purple-300 transition flex items-center justify-between";
+                item.innerHTML = `<span>${lang.flag} ${lang.name}</span> <i class="fa-solid fa-angle-right text-[10px] opacity-40"></i>`;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    saturnDropdown.classList.add('hidden');
+                    triggerGoogleTranslate(lang.gtCode);
+                };
+                saturnLangList.appendChild(item);
+            });
+        }
+
+        if (saturnBtn) {
+            saturnBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                saturnDropdown.classList.toggle('hidden');
+            });
+        }
+
+        if (saturnBtnApp) {
+            saturnBtnApp.addEventListener('click', (e) => {
+                e.stopPropagation();
+                saturnDropdown.classList.toggle('hidden');
+            });
+        }
+
+        document.addEventListener('click', () => {
+            if (saturnDropdown && !saturnDropdown.classList.contains('hidden')) {
+                saturnDropdown.classList.add('hidden');
+            }
+        });
+
+        populateSaturnMenu();
+
+        // INTERACTIVE DEMO LOGIC
         const demoLangFrom = document.getElementById('demoLangFrom');
         const demoLangTo = document.getElementById('demoLangTo');
         const demoTextFrom = document.getElementById('demoTextFrom');
@@ -874,7 +1020,7 @@
             demoPhoneticFrom.textContent = optFrom.textContent.trim();
 
             demoTextTo.textContent = optTo.getAttribute('data-text');
-            demoPhoneticTo.textContent = 'Pronunciación: ' + optTo.getAttribute('data-phonetic');
+            demoPhoneticTo.textContent = 'Pronunciation: ' + optTo.getAttribute('data-phonetic');
         }
 
         function speakDemoText(text, lang) {
@@ -903,29 +1049,7 @@
             updateDemoCard();
         }
 
-        const languages = [
-            { code: 'es-MX', name: 'Español (México)' },
-            { code: 'es-ES', name: 'Español (España)' },
-            { code: 'es-AR', name: 'Español (Argentina)' },
-            { code: 'es-CO', name: 'Español (Colombia)' },
-            { code: 'es-CL', name: 'Español (Chile)' },
-            { code: 'es-PE', name: 'Español (Perú)' },
-            { code: 'en-US', name: 'Inglés (EE. UU.)' },
-            { code: 'en-GB', name: 'Inglés (Reino Unido)' },
-            { code: 'fr-FR', name: 'Francés (Francia)' },
-            { code: 'fr-CA', name: 'Francés (Canadá)' },
-            { code: 'pt-BR', name: 'Portugués (Brasil)' },
-            { code: 'pt-PT', name: 'Portugués (Portugal)' },
-            { code: 'de-DE', name: 'Alemán' },
-            { code: 'it-IT', name: 'Italiano' },
-            { code: 'ja-JP', name: 'Japonés' },
-            { code: 'ko-KR', name: 'Coreano' },
-            { code: 'zh-CN', name: 'Chino (Mandarín)' },
-            { code: 'ru-RU', name: 'Ruso' },
-            { code: 'ar-SA', name: 'Árabe' },
-            { code: 'hi-IN', name: 'Hindi' }
-        ];
-
+        // MAIN TRANSLATION APP LOGIC
         const langFromEl = document.getElementById('langFrom');
         const langToEl = document.getElementById('langTo');
         const swapBtn = document.getElementById('swapLangs');
@@ -966,8 +1090,8 @@
                 langToEl.appendChild(optionTo);
             });
 
-            langFromEl.value = 'es-MX';
-            langToEl.value = 'en-US';
+            langFromEl.value = 'en-US';
+            langToEl.value = 'es-MX';
 
             swapBtn.addEventListener('click', () => {
                 const temp = langFromEl.value;
@@ -992,12 +1116,12 @@
             isRecording = true;
 
             updateUIForRecording(true);
-            showToast("Escuchando...", "info");
+            showToast("Listening...", "info");
 
             try {
                 recognition.start();
             } catch (e) {
-                console.error("Error al iniciar reconocimiento:", e);
+                console.error("Error starting recognition:", e);
             }
         }
 
@@ -1012,7 +1136,7 @@
                 recognition.stop();
             } catch (e) {}
 
-            showToast("Procesando traducción...", "sync");
+            showToast("Processing translation...", "sync");
 
             const rawCombined = recordedChunks.join(' ');
             const cleanText = cleanDuplicateText(rawCombined);
@@ -1020,7 +1144,7 @@
             if (cleanText.length > 0) {
                 processTranslation(cleanText);
             } else {
-                showToast("No se detectó voz clara. Intenta de nuevo.", "warning");
+                showToast("No clear speech detected. Please try again.", "warning");
             }
         }
 
@@ -1030,7 +1154,7 @@
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
                 stopBtn.classList.remove('hidden');
                 livePreviewContainer.classList.remove('hidden');
-                livePreviewText.textContent = "Escuchando...";
+                livePreviewText.textContent = "Listening...";
                 if (welcomeMessage) welcomeMessage.classList.add('hidden');
             } else {
                 micContainer.classList.remove('recording');
@@ -1060,7 +1184,7 @@
                 }
 
                 const liveCombined = recordedChunks.join(' ') + ' ' + currentInterim;
-                livePreviewText.textContent = cleanDuplicateText(liveCombined) || "Escuchando...";
+                livePreviewText.textContent = cleanDuplicateText(liveCombined) || "Listening...";
             };
 
             recognition.onend = () => {
@@ -1115,17 +1239,17 @@
 
                 if (response.ok && data.translatedText) {
                     const translatedText = data.translatedText;
-                    showToast("¡Traducido con éxito!", "success");
+                    showToast("Translated successfully!", "success");
 
                     addChatBubble(translatedText, 'translated', toLang, data.audioContent);
                     speakText(translatedText, toLang, data.audioContent);
                 } else {
-                    showToast("Error en traducción", "error");
-                    addChatBubble(`⚠️ Error: ${data.error || 'Fallo de API'}`, 'translated', toLang);
+                    showToast("Translation error", "error");
+                    addChatBubble(`⚠️ Error: ${data.error || 'API failure'}`, 'translated', toLang);
                 }
             } catch (error) {
-                console.error("Error en traducción:", error);
-                showToast("Error de conexión.", "error");
+                console.error("Translation request error:", error);
+                showToast("Connection error.", "error");
             }
         }
 
@@ -1168,7 +1292,7 @@
             if (type === 'translated') {
                 const playBtn = document.createElement('button');
                 playBtn.className = "mt-2 text-xs text-purple-200 hover:text-white transition flex items-center gap-1 active:scale-95";
-                playBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Escuchar voz IA';
+                playBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Listen to AI Voice';
                 playBtn.onclick = () => speakText(text, langCode, audioContent);
                 bubble.appendChild(playBtn);
             }
