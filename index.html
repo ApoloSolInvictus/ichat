@@ -19,7 +19,7 @@
             position: static !important;
         }
 
-        /* Completely suppress Google Translate frame banner, popups, tooltips, and highlights */
+        /* Suppress Google Translate banner frames, tooltips, and highlights without hiding DOM container */
         .goog-te-banner-frame,
         .goog-te-banner-frame.skiptranslate,
         .goog-te-balloon-frame,
@@ -34,8 +34,16 @@
             box-shadow: none !important;
         }
 
+        /* Keep hidden from view while allowing full DOM initialization */
         #google_translate_element {
-            display: none !important;
+            position: absolute !important;
+            top: -9999px !important;
+            left: -9999px !important;
+            width: 1px !important;
+            height: 1px !important;
+            overflow: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
 
         ::-webkit-scrollbar {
@@ -121,7 +129,7 @@
                 <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                     <i class="fa-solid fa-language text-xl"></i>
                 </div>
-                <span class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">iChat</span>
+                <span class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 notranslate">iChat</span>
             </div>
 
             <div class="flex items-center gap-3">
@@ -129,21 +137,22 @@
                 <div class="relative group" id="saturnMenuContainer">
                     <button id="saturnBtn" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-purple-500/40 px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-2 transition shadow-md shadow-purple-900/20">
                         <!-- Saturn Planet SVG -->
-                        <svg class="w-5 h-5 text-purple-400 group-hover:rotate-12 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg class="w-5 h-5 text-purple-400 group-hover:rotate-12 transition-transform duration-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="5" fill="#8b5cf6" fill-opacity="0.2" stroke="#a855f7" />
                             <ellipse cx="12" cy="12" rx="10" ry="3.5" transform="rotate(-25 12 12)" stroke="#c084fc" stroke-width="1.8" />
                         </svg>
-                        <span class="hidden sm:inline">Translate Web</span>
+                        <span id="saturnBtnText" class="hidden sm:inline">Translate Web</span>
                         <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
                     </button>
 
                     <!-- Dropdown Languages List -->
-                    <div id="saturnDropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-800/95 border border-purple-500/30 rounded-2xl shadow-2xl backdrop-blur-xl p-2 z-50 max-h-80 overflow-y-auto">
-                        <div class="text-[10px] font-bold text-purple-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-700/60 mb-1 flex items-center gap-1.5">
-                            <i class="fa-solid fa-earth-americas"></i> Choose Interface Language
+                    <div id="saturnDropdown" class="hidden absolute right-0 mt-2 w-60 bg-slate-800/95 border border-purple-500/30 rounded-2xl shadow-2xl backdrop-blur-xl p-2 z-50 max-h-80 overflow-y-auto">
+                        <div class="text-[10px] font-bold text-purple-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-700/60 mb-1 flex items-center justify-between">
+                            <span><i class="fa-solid fa-earth-americas mr-1"></i> Interface Language</span>
+                            <button id="btnResetLang" class="text-[9px] text-slate-400 hover:text-purple-300 underline lowercase">Reset</button>
                         </div>
                         <div class="space-y-0.5 text-xs text-slate-200" id="saturnLangList">
-                            <!-- Populated dynamically via JS with all supported languages -->
+                            <!-- Populated dynamically via JS -->
                         </div>
                     </div>
                 </div>
@@ -165,7 +174,7 @@
             </h1>
             
             <p class="text-slate-400 text-base md:text-lg max-w-2xl mb-8 leading-relaxed">
-                Speak naturally in your native language and let <strong>iChat</strong> interpret your voice with local accents and dialects instantly using native HD audio.
+                Speak naturally in your native language and let <strong class="notranslate">iChat</strong> interpret your voice with local accents and dialects instantly using native HD audio.
                 <br><br>
                 <span class="inline-block bg-green-500/10 border border-green-500/30 text-green-400 px-5 py-2.5 rounded-2xl text-lg font-bold shadow-lg shadow-green-900/20">
                     <i class="fa-solid fa-infinity mr-1"></i> Only $14 USD - One-Time Lifetime Access
@@ -185,7 +194,7 @@
                     <i class="fa-solid fa-infinity"></i> Lifetime Access
                 </div>
                 
-                <h2 class="text-2xl font-bold text-white mb-1">iChat Pro Lifetime Plan</h2>
+                <h2 class="text-2xl font-bold text-white mb-1"><span class="notranslate">iChat</span> Pro Lifetime Plan</h2>
                 <p class="text-xs text-slate-400 mb-4">No monthly subscriptions. Pay once and use the app forever.</p>
                 
                 <div class="flex items-baseline gap-1 my-3">
@@ -241,19 +250,19 @@
                     </p>
                 </div>
 
-                <!-- Demo Language Selectors (Identical List on Both Sides) -->
+                <!-- Demo Language Selectors -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-6">
                     <div>
                         <label class="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">1. Your native language:</label>
                         <select id="demoLangFrom" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                            <!-- Populated dynamically with ALL languages -->
+                            <!-- Populated dynamically -->
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">2. Language to learn / translate:</label>
                         <select id="demoLangTo" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
-                            <!-- Populated dynamically with ALL languages -->
+                            <!-- Populated dynamically -->
                         </select>
                     </div>
                 </div>
@@ -270,7 +279,7 @@
                                 <i class="fa-solid fa-volume-high"></i> Listen Input
                             </button>
                         </div>
-                        <input id="demoInputText" type="text" value="Hello! How are you doing today?" class="w-full bg-slate-800/90 border border-blue-500/40 rounded-xl px-3.5 py-2.5 text-white text-base font-medium focus:ring-2 focus:ring-blue-500 outline-none mb-1" placeholder="Type any text to test OpenAI live translation...">
+                        <input id="demoInputText" type="text" value="Hello! How are you doing today?" class="notranslate w-full bg-slate-800/90 border border-blue-500/40 rounded-xl px-3.5 py-2.5 text-white text-base font-medium focus:ring-2 focus:ring-blue-500 outline-none mb-1" placeholder="Type any text to test OpenAI live translation...">
                         <p id="demoPhoneticFrom" class="text-xs text-blue-300 italic mt-0.5">English (US)</p>
                     </div>
 
@@ -307,7 +316,7 @@
                         <i class="fa-solid fa-circle-check text-green-400 mr-1"></i> Live demo connected directly to OpenAI language models & voice output.
                     </p>
                     <a href="#heroAuthSection" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm px-6 py-3 rounded-full shadow-lg shadow-purple-900/40 transition active:scale-95">
-                        <i class="fa-solid fa-bolt"></i> Get iChat Pro for $14 USD
+                        <i class="fa-solid fa-bolt"></i> Get <span class="notranslate">iChat</span> Pro for $14 USD
                     </a>
                 </div>
             </section>
@@ -316,7 +325,7 @@
             <section class="w-full mt-24 text-left">
                 <div class="text-center max-w-2xl mx-auto mb-12">
                     <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-3">
-                        How iChat Works in 3 Steps
+                        How <span class="notranslate">iChat</span> Works in 3 Steps
                     </h2>
                     <p class="text-slate-400 text-sm md:text-base">
                         Engineered for effortless dynamic conversations—in person or remotely.
@@ -392,7 +401,7 @@
                             <tr class="border-b border-slate-700 text-slate-300 text-sm">
                                 <th class="py-4 px-4 font-bold">Feature</th>
                                 <th class="py-4 px-4 font-bold text-slate-400">Other Translators</th>
-                                <th class="py-4 px-4 font-extrabold text-purple-400 bg-purple-950/30 rounded-t-xl">iChat Pro</th>
+                                <th class="py-4 px-4 font-extrabold text-purple-400 bg-purple-950/30 rounded-t-xl notranslate">iChat Pro</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-sm">
@@ -486,7 +495,7 @@
                     </div>
 
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
-                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-purple-400 mr-2"></i> Which devices can I use iChat on?</h3>
+                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-purple-400 mr-2"></i> Which devices can I use <span class="notranslate">iChat</span> on?</h3>
                         <p class="text-slate-400 text-sm leading-relaxed">It works seamlessly on any smartphone (iOS/Android), tablet, or desktop computer using a modern web browser (Chrome, Safari, Edge, Firefox).</p>
                     </div>
 
@@ -513,7 +522,7 @@
 
         <footer class="text-center text-slate-500 text-xs py-8 border-t border-slate-800/60 mt-12">
             <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <span>© 2026 iChat Voice Translator. All rights reserved.</span>
+                <span>© 2026 <span class="notranslate">iChat</span> Voice Translator. All rights reserved.</span>
                 <div class="flex gap-4">
                     <a href="privacidad.html" class="text-slate-400 hover:text-white transition">Privacy Policy</a>
                     <a href="#heroAuthSection" class="text-slate-400 hover:text-white transition">Sign In</a>
@@ -527,7 +536,7 @@
     <div id="translatorApp" class="hidden h-screen w-screen flex flex-col overflow-hidden relative">
 
         <header class="bg-slate-800 pt-6 pb-4 px-6 shadow-md z-10 flex justify-between items-center relative">
-            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 notranslate">
                 <i class="fa-solid fa-language mr-2 text-blue-400"></i>iChat
             </h1>
             <div class="flex items-center gap-3">
@@ -896,7 +905,7 @@
 
     <!-- MAIN TRANSLATOR JS & GOOGLE TRANSLATE SATURN PLANET INTEGRATION -->
     <script>
-        // Supported Languages List (All matching Web App languages)
+        // Supported Languages List
         const languages = [
             { code: 'en-US', gtCode: 'en', name: 'English (US)', flag: '🇺🇸' },
             { code: 'en-GB', gtCode: 'en', name: 'English (UK)', flag: '🇬🇧' },
@@ -918,7 +927,26 @@
             { code: 'hi-IN', gtCode: 'hi', name: 'हिन्दी (Hindi)', flag: '🇮🇳' }
         ];
 
-        // GOOGLE TRANSLATION SCRIPT INITIALIZATION (No popups or banners)
+        /* Helper to get/set Google Translate cookie */
+        function setGoogleTranslateCookie(gtCode) {
+            const domain = window.location.hostname;
+            if (gtCode === 'en' || !gtCode) {
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                if (domain) {
+                    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain};`;
+                    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain};`;
+                }
+            } else {
+                const cookieVal = `/en/${gtCode}`;
+                document.cookie = `googtrans=${cookieVal}; path=/;`;
+                if (domain) {
+                    document.cookie = `googtrans=${cookieVal}; path=/; domain=${domain};`;
+                    document.cookie = `googtrans=${cookieVal}; path=/; domain=.${domain};`;
+                }
+            }
+        }
+
+        // GOOGLE TRANSLATION SCRIPT INITIALIZATION
         function googleTranslateElementInit() {
             if (window.google && window.google.translate) {
                 new window.google.translate.TranslateElement({
@@ -930,24 +958,46 @@
             }
         }
 
-        // Dynamically load Google Translate Script
+        // Load Google Translate Script with HTTPS
         (function loadGoogleTranslateScript() {
             const s = document.createElement('script');
-            s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+            s.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
             s.async = true;
             document.head.appendChild(s);
         })();
 
         // SILENTLY TRIGGER GOOGLE TRANSLATE WITHOUT POPUPS
+        let translateRetryCount = 0;
         function triggerGoogleTranslate(targetGtCode) {
+            setGoogleTranslateCookie(targetGtCode);
+
             const gtCombo = document.querySelector('.goog-te-combo');
             if (gtCombo) {
                 gtCombo.value = targetGtCode;
                 gtCombo.dispatchEvent(new Event('change'));
-                showToast(`Interface translated to ${targetGtCode.toUpperCase()}`, "success");
+                updateSaturnButtonLabel(targetGtCode);
+                showToast(`Page translated to ${targetGtCode.toUpperCase()}`, "success");
+                translateRetryCount = 0;
+            } else if (translateRetryCount < 8) {
+                translateRetryCount++;
+                showToast("Initializing translator...", "sync");
+                setTimeout(() => triggerGoogleTranslate(targetGtCode), 500);
             } else {
-                showToast("Translation engine loading... Please try again in a second.", "sync");
-                setTimeout(() => triggerGoogleTranslate(targetGtCode), 800);
+                // Fallback: Reload page with updated googtrans cookie
+                showToast("Applying translation...", "sync");
+                location.reload();
+            }
+        }
+
+        function updateSaturnButtonLabel(gtCode) {
+            const saturnBtnText = document.getElementById('saturnBtnText');
+            if (!saturnBtnText) return;
+
+            if (!gtCode || gtCode === 'en') {
+                saturnBtnText.textContent = "Translate Web";
+            } else {
+                const langMatch = languages.find(l => l.gtCode === gtCode);
+                saturnBtnText.textContent = langMatch ? `${langMatch.flag} Web: ${gtCode.toUpperCase()}` : `Web: ${gtCode.toUpperCase()}`;
             }
         }
 
@@ -956,21 +1006,41 @@
         const saturnBtnApp = document.getElementById('saturnBtnApp');
         const saturnDropdown = document.getElementById('saturnDropdown');
         const saturnLangList = document.getElementById('saturnLangList');
+        const btnResetLang = document.getElementById('btnResetLang');
 
         function populateSaturnMenu() {
             if (!saturnLangList) return;
             saturnLangList.innerHTML = '';
 
+            // Group unique target codes
+            const uniqueLangs = [];
+            const seenCodes = new Set();
+
             languages.forEach(lang => {
+                if (!seenCodes.has(lang.gtCode)) {
+                    seenCodes.add(lang.gtCode);
+                    uniqueLangs.push(lang);
+                }
+            });
+
+            uniqueLangs.forEach(lang => {
                 const item = document.createElement('button');
                 item.className = "w-full text-left px-3 py-2 rounded-xl hover:bg-purple-900/40 hover:text-purple-300 transition flex items-center justify-between";
-                item.innerHTML = `<span>${lang.flag} ${lang.name}</span> <i class="fa-solid fa-angle-right text-[10px] opacity-40"></i>`;
+                item.innerHTML = `<span class="flex items-center gap-2"><span>${lang.flag}</span> <span class="font-medium">${lang.name}</span></span> <i class="fa-solid fa-angle-right text-[10px] opacity-40"></i>`;
                 item.onclick = (e) => {
                     e.stopPropagation();
                     saturnDropdown.classList.add('hidden');
                     triggerGoogleTranslate(lang.gtCode);
                 };
                 saturnLangList.appendChild(item);
+            });
+        }
+
+        if (btnResetLang) {
+            btnResetLang.addEventListener('click', (e) => {
+                e.stopPropagation();
+                saturnDropdown.classList.add('hidden');
+                triggerGoogleTranslate('en');
             });
         }
 
@@ -1025,7 +1095,7 @@
             'it-IT': 'Ciao! Come stai oggi?',
             'ja-JP': 'こんにちは！お元気ですか？',
             'ko-KR': '안녕하세요! 오늘 어떻게 지내세요?',
-            'zh-CN': '你好！你今天怎么样？',
+            'zh-CN': '你好！你 today 怎么样？',
             'ru-RU': 'Привет! Как ваши дела сегодня?',
             'ar-SA': 'مرحبا! كيف حالك اليوم؟',
             'hi-IN': 'नमस्ते! आज आप कैसे हैं?'
@@ -1262,7 +1332,7 @@
             } else {
                 micContainer.classList.remove('recording');
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-                stopBtn.classList.add('hidden');
+                stopBtn.add('hidden');
                 livePreviewContainer.classList.add('hidden');
             }
         }
