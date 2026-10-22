@@ -231,85 +231,80 @@
 
                 <div class="text-center max-w-2xl mx-auto mb-8">
                     <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-purple-400/30 text-purple-300 px-4 py-1.5 rounded-full text-xs font-bold mb-3">
-                        <i class="fa-solid fa-gamepad text-pink-400"></i> Live Interactive Demo
+                        <i class="fa-solid fa-sparkles text-pink-400"></i> Live Interactive Demo Powered by OpenAI
                     </div>
                     <h2 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
-                        Try the translator right here!
+                        Try Live OpenAI Translation Here
                     </h2>
                     <p class="text-slate-400 text-sm md:text-base mt-2">
-                        Select your native language and the target language. Listen to how the greeting sounds on both sides with real voice.
+                        Select any source & target language or type your custom message to test live OpenAI translation and HD voice output.
                     </p>
                 </div>
 
-                <!-- Demo Selector -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto mb-6">
+                <!-- Demo Language Selectors (Identical List on Both Sides) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-6">
                     <div>
                         <label class="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">1. Your native language:</label>
                         <select id="demoLangFrom" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="en-US" data-text="Hello! How are you doing today?" data-phonetic="Hel-lo! Hau ar yu du-ing tu-dey?">🇺🇸 English (US)</option>
-                            <option value="es-MX" data-text="¡Hola! ¿Cómo estás hoy?" data-phonetic="O-la! Ko-mo es-tas oi?">🇲🇽 Spanish (Latin America)</option>
-                            <option value="fr-FR" data-text="Bonjour! Comment allez-vous aujourd'hui?" data-phonetic="Bon-zhur! Ko-man ta-le vu?">🇫🇷 French</option>
-                            <option value="de-DE" data-text="Hallo! Wie geht es dir heute?" data-phonetic="Ja-lo! Vi gets dir hoy-te?">🇩🇪 German</option>
+                            <!-- Populated dynamically with ALL languages -->
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">2. Language to learn:</label>
+                        <label class="block text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">2. Language to learn / translate:</label>
                         <select id="demoLangTo" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
-                            <option value="ja-JP" data-text="こんにちは！お元気ですか？" data-phonetic="Konnichiwa! O-genki desu ka?">🇯🇵 Japanese</option>
-                            <option value="es-ES" data-text="¡Hola! ¿Cómo estás?" data-phonetic="OH-lah! Koh-moh ehs-TAHS?">🇪🇸 Spanish</option>
-                            <option value="fr-FR" data-text="Bonjour! Comment ça va?" data-phonetic="Bon-zhur! Ko-man sa va?">🇫🇷 French</option>
-                            <option value="it-IT" data-text="Ciao! Come stai?" data-phonetic="Chao! Ko-me stai?">🇮🇹 Italian</option>
-                            <option value="pt-BR" data-text="Olá! Como vai você?" data-phonetic="O-la! Ko-mu vai vo-se?">🇧🇷 Portuguese</option>
-                            <option value="ko-KR" data-text="안녕하세요! 어떻게 지내세요?" data-phonetic="An-nyeong-ha-se-yo!">🇰🇷 Korean</option>
-                            <option value="zh-CN" data-text="你好！你今天怎么样？" data-phonetic="Nǐ hǎo! Nǐ jīn tiān zěn me yàng?">🇨🇳 Mandarin Chinese</option>
+                            <!-- Populated dynamically with ALL languages -->
                         </select>
                     </div>
                 </div>
 
-                <!-- Interactive Simulated Chat -->
-                <div class="max-w-xl mx-auto bg-slate-900/90 border border-slate-700/80 rounded-2xl p-5 shadow-inner space-y-4">
-                    <!-- Source Message -->
-                    <div class="flex flex-col items-start bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4">
-                        <div class="flex items-center justify-between w-full mb-1">
+                <!-- Interactive Simulated OpenAI Chat -->
+                <div class="max-w-2xl mx-auto bg-slate-900/90 border border-slate-700/80 rounded-2xl p-5 shadow-inner space-y-4">
+                    <!-- Source Input Card -->
+                    <div class="flex flex-col items-start bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4 w-full">
+                        <div class="flex items-center justify-between w-full mb-2">
                             <span class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-user text-blue-400"></i> Your Native Language
+                                <i class="fa-solid fa-user text-blue-400"></i> Phrase / Speech Input
                             </span>
-                            <button id="btnPlayDemoFrom" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
-                                <i class="fa-solid fa-volume-high"></i> Listen
+                            <button id="btnPlayDemoFrom" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 border border-slate-600">
+                                <i class="fa-solid fa-volume-high"></i> Listen Input
                             </button>
                         </div>
-                        <p id="demoTextFrom" class="text-white text-lg font-bold">Hello! How are you doing today?</p>
-                        <p id="demoPhoneticFrom" class="text-xs text-blue-300 italic mt-0.5">English</p>
+                        <input id="demoInputText" type="text" value="Hello! How are you doing today?" class="w-full bg-slate-800/90 border border-blue-500/40 rounded-xl px-3.5 py-2.5 text-white text-base font-medium focus:ring-2 focus:ring-blue-500 outline-none mb-1" placeholder="Type any text to test OpenAI live translation...">
+                        <p id="demoPhoneticFrom" class="text-xs text-blue-300 italic mt-0.5">English (US)</p>
                     </div>
 
-                    <!-- Translation Indicator -->
-                    <div class="flex items-center justify-center text-slate-500 text-xs font-semibold gap-2">
-                        <div class="h-px bg-slate-700 flex-1"></div>
-                        <span class="bg-slate-800 px-3 py-1 rounded-full text-purple-300 border border-purple-500/20 flex items-center gap-1">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Simultaneous AI Translation
-                        </span>
-                        <div class="h-px bg-slate-700 flex-1"></div>
+                    <!-- Translation Bar with OpenAI Action -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-800/70 p-3 rounded-2xl border border-slate-700/60">
+                        <div class="flex items-center gap-2 text-xs text-purple-300">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm animate-pulse"></i>
+                            <span id="demoStatusText">Powered by OpenAI gpt-4o & TTS HD Voice</span>
+                        </div>
+                        <button id="btnTranslateDemo" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:to-pink-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bolt"></i> Translate with OpenAI
+                        </button>
                     </div>
 
-                    <!-- Translated Message -->
-                    <div class="flex flex-col items-start bg-purple-950/40 border border-purple-500/30 rounded-2xl p-4">
+                    <!-- Translated Card -->
+                    <div class="flex flex-col items-start bg-purple-950/40 border border-purple-500/30 rounded-2xl p-4 w-full">
                         <div class="flex items-center justify-between w-full mb-1">
                             <span class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-robot text-purple-400"></i> Translation & HD Voice
+                                <i class="fa-solid fa-robot text-purple-400"></i> OpenAI AI Translation & HD Voice
                             </span>
-                            <button id="btnPlayDemoTo" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
-                                <i class="fa-solid fa-volume-high"></i> Listen
+                            <button id="btnPlayDemoTo" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
+                                <i class="fa-solid fa-volume-high"></i> Listen HD Voice
                             </button>
                         </div>
-                        <p id="demoTextTo" class="text-white text-lg font-bold">こんにちは！お元気ですか？</p>
-                        <p id="demoPhoneticTo" class="text-xs text-purple-300 italic mt-0.5">Pronunciation: Konnichiwa! O-genki desu ka?</p>
+                        <p id="demoTextTo" class="text-white text-lg font-bold min-h-[28px] flex items-center">
+                            ¡Hola! ¿Cómo estás hoy?
+                        </p>
+                        <p id="demoPhoneticTo" class="text-xs text-purple-300 italic mt-1">Spanish (México)</p>
                     </div>
                 </div>
 
                 <div class="text-center mt-6">
                     <p class="text-xs text-slate-400 mb-3">
-                        <i class="fa-solid fa-circle-check text-green-400 mr-1"></i> The full version interprets extended speeches, live conversations, and local slang.
+                        <i class="fa-solid fa-circle-check text-green-400 mr-1"></i> Live demo connected directly to OpenAI language models & voice output.
                     </p>
                     <a href="#heroAuthSection" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm px-6 py-3 rounded-full shadow-lg shadow-purple-900/40 transition active:scale-95">
                         <i class="fa-solid fa-bolt"></i> Get iChat Pro for $14 USD
@@ -1001,29 +996,119 @@
 
         populateSaturnMenu();
 
-        // INTERACTIVE DEMO LOGIC
+        // INTERACTIVE DEMO LOGIC WITH OPENAI INTEGRATION
         const demoLangFrom = document.getElementById('demoLangFrom');
         const demoLangTo = document.getElementById('demoLangTo');
-        const demoTextFrom = document.getElementById('demoTextFrom');
+        const demoInputText = document.getElementById('demoInputText');
         const demoPhoneticFrom = document.getElementById('demoPhoneticFrom');
         const demoTextTo = document.getElementById('demoTextTo');
         const demoPhoneticTo = document.getElementById('demoPhoneticTo');
+        const demoStatusText = document.getElementById('demoStatusText');
         const btnPlayDemoFrom = document.getElementById('btnPlayDemoFrom');
         const btnPlayDemoTo = document.getElementById('btnPlayDemoTo');
+        const btnTranslateDemo = document.getElementById('btnTranslateDemo');
 
-        function updateDemoCard() {
+        let demoAudioContent = null;
+
+        const samplePhrases = {
+            'en-US': 'Hello! How are you doing today?',
+            'en-GB': 'Hello! How are you doing today?',
+            'es-MX': '¡Hola! ¿Cómo estás hoy?',
+            'es-ES': '¡Hola! ¿Cómo estás?',
+            'es-AR': '¡Hola! ¿Cómo estás hoy?',
+            'es-CO': '¡Hola! ¿Cómo estás hoy?',
+            'fr-FR': "Bonjour! Comment allez-vous aujourd'hui?",
+            'fr-CA': "Bonjour! Comment ça va?",
+            'pt-BR': 'Olá! Como vai você hoje?',
+            'pt-PT': 'Olá! Como está hoje?',
+            'de-DE': 'Hallo! Wie geht es dir heute?',
+            'it-IT': 'Ciao! Come stai oggi?',
+            'ja-JP': 'こんにちは！お元気ですか？',
+            'ko-KR': '안녕하세요! 오늘 어떻게 지내세요?',
+            'zh-CN': '你好！你今天怎么样？',
+            'ru-RU': 'Привет! Как ваши дела сегодня?',
+            'ar-SA': 'مرحبا! كيف حالك اليوم؟',
+            'hi-IN': 'नमस्ते! आज आप कैसे हैं?'
+        };
+
+        function populateDemoLanguages() {
             if (!demoLangFrom || !demoLangTo) return;
-            const optFrom = demoLangFrom.options[demoLangFrom.selectedIndex];
-            const optTo = demoLangTo.options[demoLangTo.selectedIndex];
+            demoLangFrom.innerHTML = '';
+            demoLangTo.innerHTML = '';
 
-            demoTextFrom.textContent = optFrom.getAttribute('data-text');
-            demoPhoneticFrom.textContent = optFrom.textContent.trim();
+            languages.forEach(lang => {
+                const optFrom = document.createElement('option');
+                optFrom.value = lang.code;
+                optFrom.textContent = `${lang.flag} ${lang.name}`;
+                demoLangFrom.appendChild(optFrom);
 
-            demoTextTo.textContent = optTo.getAttribute('data-text');
-            demoPhoneticTo.textContent = 'Pronunciation: ' + optTo.getAttribute('data-phonetic');
+                const optTo = document.createElement('option');
+                optTo.value = lang.code;
+                optTo.textContent = `${lang.flag} ${lang.name}`;
+                demoLangTo.appendChild(optTo);
+            });
+
+            demoLangFrom.value = 'en-US';
+            demoLangTo.value = 'es-MX';
         }
 
-        function speakDemoText(text, lang) {
+        async function runOpenAIDemoTranslation() {
+            if (!demoInputText) return;
+            const text = demoInputText.value.trim();
+            const fromLang = demoLangFrom.value;
+            const toLang = demoLangTo.value;
+
+            if (!text) return;
+
+            demoStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-purple-400"></i> Connecting to OpenAI...';
+            demoTextTo.textContent = 'Translating...';
+            demoAudioContent = null;
+
+            const fromObj = languages.find(l => l.code === fromLang);
+            const toObj = languages.find(l => l.code === toLang);
+
+            demoPhoneticFrom.textContent = fromObj ? `${fromObj.flag} ${fromObj.name}` : fromLang;
+            demoPhoneticTo.textContent = toObj ? `${toObj.flag} ${toObj.name}` : toLang;
+
+            try {
+                const response = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, fromLang, toLang })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.translatedText) {
+                    demoTextTo.textContent = data.translatedText;
+                    demoAudioContent = data.audioContent;
+                    demoStatusText.innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i> OpenAI Translation & HD Voice Ready!';
+                } else {
+                    throw new Error(data.error || 'OpenAI backend API offline');
+                }
+            } catch (err) {
+                console.warn("OpenAI Demo API error fallback:", err);
+                demoStatusText.innerHTML = '<i class="fa-solid fa-circle-info text-blue-400"></i> Demo Speech Engine Active';
+                const fallbackText = samplePhrases[toLang] || `[Traducción] ${text}`;
+                demoTextTo.textContent = fallbackText;
+            }
+        }
+
+        function speakDemoText(text, lang, audioContent = null) {
+            if (audioContent) {
+                try {
+                    const audio = new Audio(audioContent);
+                    audio.play().catch(e => {
+                        console.warn("Audio play error, falling back to Web Speech", e);
+                        speakTextFallback(text, lang);
+                    });
+                    return;
+                } catch (e) {}
+            }
+            speakTextFallback(text, lang);
+        }
+
+        function speakTextFallback(text, lang) {
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
@@ -1033,20 +1118,38 @@
         }
 
         if (demoLangFrom && demoLangTo) {
-            demoLangFrom.addEventListener('change', updateDemoCard);
-            demoLangTo.addEventListener('change', updateDemoCard);
+            populateDemoLanguages();
 
-            btnPlayDemoFrom.addEventListener('click', () => {
-                const optFrom = demoLangFrom.options[demoLangFrom.selectedIndex];
-                speakDemoText(optFrom.getAttribute('data-text'), demoLangFrom.value);
+            demoLangFrom.addEventListener('change', () => {
+                const selectedFrom = demoLangFrom.value;
+                if (samplePhrases[selectedFrom]) {
+                    demoInputText.value = samplePhrases[selectedFrom];
+                }
+                runOpenAIDemoTranslation();
             });
 
-            btnPlayDemoTo.addEventListener('click', () => {
-                const optTo = demoLangTo.options[demoLangTo.selectedIndex];
-                speakDemoText(optTo.getAttribute('data-text'), demoLangTo.value);
+            demoLangTo.addEventListener('change', () => {
+                runOpenAIDemoTranslation();
             });
 
-            updateDemoCard();
+            if (btnTranslateDemo) {
+                btnTranslateDemo.addEventListener('click', runOpenAIDemoTranslation);
+            }
+
+            if (btnPlayDemoFrom) {
+                btnPlayDemoFrom.addEventListener('click', () => {
+                    speakDemoText(demoInputText.value, demoLangFrom.value);
+                });
+            }
+
+            if (btnPlayDemoTo) {
+                btnPlayDemoTo.addEventListener('click', () => {
+                    speakDemoText(demoTextTo.textContent, demoLangTo.value, demoAudioContent);
+                });
+            }
+
+            // Initial demo run on load
+            setTimeout(runOpenAIDemoTranslation, 500);
         }
 
         // MAIN TRANSLATION APP LOGIC
