@@ -12,12 +12,11 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* Slate 900 */
+            background-color: #0f172a;
             color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Ocultar scrollbar para un look de app pura */
         ::-webkit-scrollbar {
             width: 0px;
             background: transparent;
@@ -59,10 +58,6 @@
             display: block;
         }
 
-        .recording-button {
-            transition: all 0.3s ease;
-        }
-
         .recording .recording-button {
             background-color: #ef4444;
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
@@ -93,7 +88,7 @@
 </head>
 <body class="h-screen w-screen overflow-x-hidden flex flex-col bg-slate-900 text-slate-100">
 
-    <!-- LANDING PAGE (SECCIÓN VISIBLE ANTES DE AUTENTICARSE) -->
+    <!-- LANDING PAGE -->
     <div id="landingPage" class="min-h-screen w-full flex flex-col justify-between hero-gradient px-4 py-8 max-w-4xl mx-auto">
         
         <!-- Header Landing -->
@@ -112,22 +107,47 @@
         <!-- Hero Section -->
         <main class="flex flex-col items-center text-center my-auto py-10">
             <div class="inline-flex items-center gap-2 bg-purple-900/40 border border-purple-500/30 text-purple-300 px-4 py-1.5 rounded-full text-xs font-semibold mb-6">
-                <i class="fa-solid fa-sparkles text-purple-400"></i> Traducción Simultánea por Inteligencia Artificial
+                <i class="fa-solid fa-sparkles text-purple-400"></i> Traducción Simultánea en Tiempo Real
             </div>
             
             <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight mb-6">
                 Rompe la barrera del idioma en <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Tiempo Real</span>
             </h1>
             
-            <p class="text-slate-400 text-base md:text-lg max-w-2xl mb-10 leading-relaxed">
+            <p class="text-slate-400 text-base md:text-lg max-w-2xl mb-8 leading-relaxed">
                 Habla de forma natural en tu idioma y deja que <strong>iChat</strong> interprete tu voz con acentos y dialectos locales al instante con voz HD nativa.
+                <br><br>
+                <span class="inline-block bg-green-500/10 border border-green-500/30 text-green-400 px-5 py-2.5 rounded-2xl text-lg font-bold shadow-lg shadow-green-900/20">
+                    <i class="fa-solid fa-infinity mr-1"></i> Solo $14 USD - Único pago de por vida
+                </span>
             </p>
 
-            <button id="loginBtnHero" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-base md:text-lg px-8 py-4 rounded-2xl shadow-xl shadow-purple-900/40 transform active:scale-95 transition-all flex items-center gap-3">
-                <i class="fa-brands fa-google text-xl"></i> Continuar con Google
-            </button>
+            <!-- Sección de Login Inicial -->
+            <div id="heroAuthSection" class="w-full flex flex-col items-center">
+                <button id="loginBtnHero" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-base md:text-lg px-8 py-4 rounded-2xl shadow-xl shadow-purple-900/40 transform active:scale-95 transition-all flex items-center gap-3">
+                    <i class="fa-brands fa-google text-xl"></i> Continuar con Google
+                </button>
+            </div>
 
-            <!-- Características / Cards -->
+            <!-- CARD DE PAGO PAYPAL (SE MUESTRA TRAS LOGUEARSE) -->
+            <div id="paypalPayCard" class="hidden w-full max-w-md mt-6 p-6 rounded-3xl bg-slate-800/80 border border-purple-500/40 shadow-2xl backdrop-blur-lg flex flex-col items-center text-center animate-fade-in">
+                <div class="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-bold mb-3 border border-green-500/20">
+                    <i class="fa-solid fa-infinity"></i> Acceso De Por Vida
+                </div>
+                
+                <h2 class="text-2xl font-bold text-white mb-1">Plan Único iChat Pro</h2>
+                <p class="text-xs text-slate-400 mb-4">Sin suscripciones mensuales. Un solo pago y usas la app para siempre.</p>
+                
+                <div class="flex items-baseline gap-1 my-3">
+                    <span class="text-5xl font-extrabold text-white">$14</span>
+                    <span class="text-sm font-semibold text-slate-400">USD</span>
+                </div>
+                <p class="text-[11px] text-purple-300 mb-6"><i class="fa-solid fa-check text-green-400 mr-1"></i> Traducción e interpretación de voz ilimitada con IA</p>
+
+                <div id="paypal-button-container" class="w-full min-h-[50px]"></div>
+            </div>
+
+            <!-- Tarjetas de Características -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-16 text-left">
                 <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl">
                     <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-2xl mb-4">
@@ -155,17 +175,15 @@
             </div>
         </main>
 
-        <!-- Footer Landing -->
         <footer class="text-center text-slate-500 text-xs py-6 border-t border-slate-800/60">
             © 2026 iChat Voice Translator. Todos los derechos reservados.
         </footer>
     </div>
 
 
-    <!-- WEB APP PRINCIPAL (SECCIÓN PRIVADA / TRADUCTOR) -->
+    <!-- WEB APP PRINCIPAL -->
     <div id="translatorApp" class="hidden h-screen w-screen flex flex-col overflow-hidden relative">
 
-        <!-- Header App -->
         <header class="bg-slate-800 pt-6 pb-4 px-6 shadow-md z-10 flex justify-between items-center relative">
             <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
                 <i class="fa-solid fa-language mr-2 text-blue-400"></i>iChat
@@ -178,7 +196,6 @@
             </div>
         </header>
 
-        <!-- Configuración de Idiomas -->
         <div class="bg-slate-800/50 p-4 shadow-sm z-10 flex gap-2 border-b border-slate-700/50">
             <div class="flex-1 relative">
                 <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Hablas en</label>
@@ -197,7 +214,6 @@
             </div>
         </div>
 
-        <!-- Área de Chat -->
         <main id="chatArea" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-36">
             <div id="welcomeMessage" class="text-center text-slate-400 text-sm mt-6 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
                 <i class="fa-solid fa-microphone-slash text-2xl text-blue-400 mb-2 block"></i>
@@ -218,7 +234,6 @@
             </div>
         </main>
 
-        <!-- Controles Flotantes Inferiores -->
         <div class="absolute bottom-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent pt-10 pb-8 px-6 flex justify-center z-20">
             <div class="flex items-center gap-6">
                 <div id="micContainer" class="relative flex items-center justify-center">
@@ -256,7 +271,6 @@
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Configuración dinámica de Firebase
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
@@ -279,17 +293,11 @@
         const loginBtnTop = document.getElementById('loginBtnTop');
         const logoutBtn = document.getElementById('logoutBtn');
         const userEmail = document.getElementById('userEmail');
+        const heroAuthSection = document.getElementById('heroAuthSection');
+        const paypalPayCard = document.getElementById('paypalPayCard');
 
-        // Procesar el resultado del Redirect al regresar de Google
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                showToast("¡Sesión iniciada con éxito!", "success");
-            }
-        }).catch((error) => {
-            console.warn("Error en el redirect de Google:", error);
-        });
+        let currentUser = null;
 
-        // Función robusta para Iniciar Sesión con Google
         async function handleGoogleLogin() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -300,31 +308,17 @@
                 showToast("Conectando con Google...", "sync");
                 
                 try {
-                    // Intento 1: Popup emergente
                     await signInWithPopup(auth, provider);
                 } catch (popupErr) {
-                    console.warn("Popup bloqueado o no soportado en móvil, intentando Redirect...", popupErr);
-                    
-                    if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user' || popupErr.code === 'auth/cancelled-popup-request') {
-                        // Intento 2: Redirección directa en la misma ventana
+                    if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user') {
                         await signInWithRedirect(auth, provider);
                     } else {
-                        // Intento 3: Anónimo si las credenciales de Firebase no están activas aún
-                        console.warn("Auth Fallback activo por error de configuración:", popupErr);
                         await signInAnonymously(auth);
                     }
                 }
             } catch (error) {
-                console.warn("Entrando en modo de acceso con invitado:", error);
-                try {
-                    await signInAnonymously(auth);
-                } catch (anonErr) {
-                    // Si todo falla, forzar paso a la app para testing
-                    landingPage.classList.add('hidden');
-                    translatorApp.classList.remove('hidden');
-                    userEmail.textContent = "Usuario Demo";
-                    showToast("Acceso invitado temporal", "info");
-                }
+                console.warn("Entrando en modo demo:", error);
+                await signInAnonymously(auth);
             }
         }
 
@@ -334,6 +328,7 @@
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
+                localStorage.removeItem('ichat_paid_user');
                 showToast("Sesión cerrada correctamente", "info");
             } catch (e) {
                 landingPage.classList.remove('hidden');
@@ -341,16 +336,113 @@
             }
         });
 
-        // Escuchador del Estado de Autenticación
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
+        // Verificar o Renderizar Botón de PayPal
+        async function checkUserPaymentAndGrantAccess(user) {
+            currentUser = user;
+            const paidLocally = localStorage.getItem(`ichat_paid_${user.uid}`);
+
+            if (paidLocally === 'true') {
+                // El usuario ya pagó $14 -> Dar acceso directo
                 landingPage.classList.add('hidden');
                 translatorApp.classList.remove('hidden');
-                userEmail.textContent = user.email || (user.isAnonymous ? "Usuario Invitado" : `Usuario #${user.uid.slice(0, 6)}`);
-                showToast(user.isAnonymous ? "Acceso en modo prueba" : `¡Bienvenido ${user.displayName || ''}!`, "success");
+                userEmail.textContent = user.email || "Usuario Pro";
+                showToast("¡Bienvenido a iChat Pro!", "success");
+            } else {
+                // El usuario se logueó pero debe pagar $14
+                landingPage.classList.remove('hidden');
+                translatorApp.classList.add('hidden');
+                heroAuthSection.classList.add('hidden');
+                paypalPayCard.classList.remove('hidden');
+                
+                await loadPayPalSDKAndRender(user);
+            }
+        }
+
+        async function loadPayPalSDKAndRender(user) {
+            try {
+                // Obtenemos el Client ID seguro desde Vercel
+                const res = await fetch('/api/paypal');
+                const data = await res.json();
+                
+                if (!data.clientId) {
+                    console.error("Falta el Client ID de PayPal en Vercel.");
+                    return;
+                }
+
+                if (window.paypal) {
+                    renderPayPalButton(user);
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = `https://www.paypal.com/sdk/js?client-id=${data.clientId}&currency=USD`;
+                script.onload = () => renderPayPalButton(user);
+                document.head.appendChild(script);
+            } catch (err) {
+                console.error("Error cargando SDK de PayPal:", err);
+            }
+        }
+
+        function renderPayPalButton(user) {
+            const container = document.getElementById('paypal-button-container');
+            container.innerHTML = ''; // Limpiar previo
+
+            if (window.paypal) {
+                paypal.Buttons({
+                    style: {
+                        shape: 'pill',
+                        color: 'gold',
+                        layout: 'vertical',
+                        label: 'pay'
+                    },
+                    createOrder: async function() {
+                        // Llama a tu backend de Vercel para crear la orden segura de $14
+                        const res = await fetch('/api/paypal', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'create' })
+                        });
+                        const order = await res.json();
+                        return order.id;
+                    },
+                    onApprove: async function(data) {
+                        // Llama a tu backend para confirmar y capturar el dinero
+                        const res = await fetch('/api/paypal', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'capture', orderID: data.orderID })
+                        });
+                        const details = await res.json();
+                        
+                        if (details.status === 'COMPLETED') {
+                            showToast("¡Pago exitoso! Activando tu cuenta...", "success");
+                            localStorage.setItem(`ichat_paid_${user.uid}`, 'true');
+                            
+                            setTimeout(() => {
+                                landingPage.classList.add('hidden');
+                                translatorApp.classList.remove('hidden');
+                                userEmail.textContent = user.email || "Usuario Pro";
+                            }, 1000);
+                        } else {
+                            showToast("El pago no pudo ser procesado.", "error");
+                        }
+                    },
+                    onError: function(err) {
+                        console.error("Error PayPal:", err);
+                        showToast("Error procesando el pago. Intenta de nuevo.", "error");
+                    }
+                }).render('#paypal-button-container');
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                checkUserPaymentAndGrantAccess(user);
             } else {
                 landingPage.classList.remove('hidden');
                 translatorApp.classList.add('hidden');
+                heroAuthSection.classList.remove('hidden');
+                paypalPayCard.classList.add('hidden');
             }
         });
     </script>
@@ -405,10 +497,6 @@
             recognition = new SpeechRecognition();
             recognition.continuous = false; 
             recognition.interimResults = true;
-        } else {
-            showToast("Tu navegador no soporta reconocimiento de voz.", "error");
-            recordBtn.disabled = true;
-            recordBtn.classList.add('opacity-50', 'cursor-not-allowed');
         }
 
         function initApp() {
@@ -456,7 +544,6 @@
                 recognition.start();
             } catch (e) {
                 console.error("Error al iniciar reconocimiento:", e);
-                showToast("Error al activar micrófono.", "error");
             }
         }
 
@@ -469,9 +556,7 @@
 
             try {
                 recognition.stop();
-            } catch (e) {
-                console.error("Error al detener:", e);
-            }
+            } catch (e) {}
 
             showToast("Procesando traducción...", "sync");
 
@@ -524,26 +609,12 @@
                 livePreviewText.textContent = cleanDuplicateText(liveCombined) || "Escuchando...";
             };
 
-            recognition.onerror = (event) => {
-                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                    isRecording = false;
-                    updateUIForRecording(false);
-                    showToast("Permiso de micrófono denegado.", "error");
-                }
-            };
-
             recognition.onend = () => {
                 if (isRecording) {
                     clearTimeout(restartTimeout);
                     restartTimeout = setTimeout(() => {
                         if (isRecording) {
-                            try {
-                                recognition.start();
-                            } catch (e) {
-                                setTimeout(() => {
-                                    try { recognition.start(); } catch(err) {}
-                                }, 250);
-                            }
+                            try { recognition.start(); } catch (e) {}
                         }
                     }, 50);
                 }
@@ -570,43 +641,7 @@
                 }
             }
 
-            let finalWords = dedupWords;
-            let modified = true;
-
-            while (modified) {
-                modified = false;
-                const tempWords = [];
-                let i = 0;
-
-                while (i < finalWords.length) {
-                    let dupFound = false;
-
-                    for (let len = 5; len >= 2; len--) {
-                        if (i + 2 * len <= finalWords.length) {
-                            const phrase1 = finalWords.slice(i, i + len).join(' ').toLowerCase().replace(/[.,?!]/g, '');
-                            const phrase2 = finalWords.slice(i + len, i + 2 * len).join(' ').toLowerCase().replace(/[.,?!]/g, '');
-
-                            if (phrase1 === phrase2 && phrase1.length > 0) {
-                                for (let k = 0; k < len; k++) {
-                                    tempWords.push(finalWords[i + k]);
-                                }
-                                i += 2 * len;
-                                dupFound = true;
-                                modified = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!dupFound) {
-                        tempWords.push(finalWords[i]);
-                        i++;
-                    }
-                }
-                finalWords = tempWords;
-            }
-
-            return finalWords.join(' ');
+            return dedupWords.join(' ');
         }
 
         async function processTranslation(text) {
@@ -626,19 +661,17 @@
 
                 if (response.ok && data.translatedText) {
                     const translatedText = data.translatedText;
-                    showToast("¡Traducido e interpretado con éxito!", "success");
+                    showToast("¡Traducido con éxito!", "success");
 
                     addChatBubble(translatedText, 'translated', toLang, data.audioContent);
                     speakText(translatedText, toLang, data.audioContent);
                 } else {
-                    const errDetail = data.error || "Error desconocido";
-                    showToast("Error en Vercel / OpenAI", "error");
-                    addChatBubble(`⚠️ ${errDetail}`, 'translated', toLang);
+                    showToast("Error en traducción", "error");
+                    addChatBubble(`⚠️ Error: ${data.error || 'Fallo de API'}`, 'translated', toLang);
                 }
             } catch (error) {
                 console.error("Error en traducción:", error);
                 showToast("Error de conexión.", "error");
-                addChatBubble("⚠️ Error de conexión con Vercel.", 'translated', toLang);
             }
         }
 
@@ -646,11 +679,9 @@
             if (audioContent) {
                 try {
                     const audio = new Audio(audioContent);
-                    audio.play().catch(e => console.error("Error reproduciendo audio:", e));
+                    audio.play().catch(e => console.error(e));
                     return;
-                } catch (e) {
-                    console.warn("Fallback a audio del navegador:", e);
-                }
+                } catch (e) {}
             }
 
             if (!('speechSynthesis' in window)) return;
@@ -659,11 +690,6 @@
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang;
             utterance.rate = 0.95;
-
-            const voices = window.speechSynthesis.getVoices();
-            const specificVoice = voices.find(v => v.lang === lang || v.lang.replace('_', '-') === lang);
-            if (specificVoice) utterance.voice = specificVoice;
-
             window.speechSynthesis.speak(utterance);
         }
 
@@ -709,17 +735,11 @@
             toastMessageEl.textContent = message;
             toastIconEl.className = "fa-solid ";
 
-            if (type === 'error') {
-                toastIconEl.className += "fa-circle-exclamation text-red-400";
-            } else if (type === 'success') {
-                toastIconEl.className += "fa-circle-check text-green-400";
-            } else if (type === 'warning') {
-                toastIconEl.className += "fa-triangle-exclamation text-yellow-400";
-            } else if (type === 'sync') {
-                toastIconEl.className += "fa-rotate text-blue-400 animate-spin";
-            } else {
-                toastIconEl.className += "fa-circle-info text-blue-400";
-            }
+            if (type === 'error') toastIconEl.className += "fa-circle-exclamation text-red-400";
+            else if (type === 'success') toastIconEl.className += "fa-circle-check text-green-400";
+            else if (type === 'warning') toastIconEl.className += "fa-triangle-exclamation text-yellow-400";
+            else if (type === 'sync') toastIconEl.className += "fa-rotate text-blue-400 animate-spin";
+            else toastIconEl.className += "fa-circle-info text-blue-400";
 
             toastEl.classList.remove('opacity-0', 'translate-y-[-20px]');
             toastEl.classList.add('opacity-100', 'translate-y-0');
