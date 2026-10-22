@@ -149,34 +149,334 @@
 
             <!-- Tarjetas de Características -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-16 text-left">
-                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl">
+                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl hover:border-blue-500/50 transition duration-300">
                     <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-2xl mb-4">
                         <i class="fa-solid fa-microphone-lines"></i>
                     </div>
-                    <h3 class="font-bold text-white text-lg mb-2">Voz Continua</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Habla párrafos o ideas largas sin interrupciones. Escucha continua en tiempo real.</p>
+                    <h3 class="font-bold text-white text-lg mb-2">Voz Continua IA</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Habla párrafos o ideas largas sin interrupciones. Escucha continua en tiempo real sin pausas incómodas.</p>
                 </div>
 
-                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl">
+                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl hover:border-purple-500/50 transition duration-300">
                     <div class="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-2xl mb-4">
                         <i class="fa-solid fa-earth-americas"></i>
                     </div>
-                    <h3 class="font-bold text-white text-lg mb-2">Léxico Local</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Soporte multi-dialecto para capturar modismos y pronunciaciones nativas de cada país.</p>
+                    <h3 class="font-bold text-white text-lg mb-2">Léxico Local & Dialectos</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Soporte multi-dialecto para capturar modismos, acentos y expresiones nativas de más de 20 regiones.</p>
                 </div>
 
-                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl">
+                <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl hover:border-pink-500/50 transition duration-300">
                     <div class="w-12 h-12 bg-pink-500/10 text-pink-400 rounded-xl flex items-center justify-center text-2xl mb-4">
                         <i class="fa-solid fa-volume-high"></i>
                     </div>
-                    <h3 class="font-bold text-white text-lg mb-2">Voz HD Humana</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Sintetizador inteligente que reproduce el mensaje traducido con fluidez natural.</p>
+                    <h3 class="font-bold text-white text-lg mb-2">Voz HD Humana Nativa</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Sintetizador inteligente de última generación que reproduce el mensaje traducido con fluidez natural.</p>
                 </div>
             </div>
+
+            <!-- DEMO INTERACTIVA / JUEGO DE APRENDER A DECIR HOLA -->
+            <section class="w-full mt-20 bg-gradient-to-b from-slate-800/80 to-slate-900/90 border border-purple-500/30 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-xl relative overflow-hidden text-left">
+                <div class="absolute -top-24 -right-24 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-purple-400/30 text-purple-300 px-4 py-1.5 rounded-full text-xs font-bold mb-3">
+                        <i class="fa-solid fa-gamepad text-pink-400"></i> Demo Interactiva en Vivo
+                    </div>
+                    <h2 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
+                        ¡Prueba el traductor aquí mismo!
+                    </h2>
+                    <p class="text-slate-400 text-sm md:text-base mt-2">
+                        Selecciona tu idioma natal y el idioma que deseas aprender. Escucha cómo suena el saludo en ambos lados con voz real.
+                    </p>
+                </div>
+
+                <!-- Selector del Juego -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">1. Tu idioma natal:</label>
+                        <select id="demoLangFrom" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="es-MX" data-text="¡Hola! ¿Cómo estás?" data-phonetic="¡Hola! ¿Cómo estás?">🇲🇽 Español (Latinoamérica)</option>
+                            <option value="en-US" data-text="Hello! How are you?" data-phonetic="Hel-lo! Hau ar yu?">🇺🇸 Inglés (EE. UU.)</option>
+                            <option value="fr-FR" data-text="Bonjour! Comment ça va?" data-phonetic="Bon-zhur! Ko-man sa va?">🇫🇷 Francés</option>
+                            <option value="de-DE" data-text="Hallo! Wie geht's?" data-phonetic="Ja-lo! Vi gets?">🇩🇪 Alemán</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">2. Idioma a aprender:</label>
+                        <select id="demoLangTo" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="ja-JP" data-text="こんにちは！お元気ですか？" data-phonetic="Konnichiwa! O-genki desu ka?">🇯🇵 Japonés</option>
+                            <option value="en-US" data-text="Hello! How are you?" data-phonetic="Hel-lo! Hau ar yu?">🇺🇸 Inglés</option>
+                            <option value="fr-FR" data-text="Bonjour! Comment ça va?" data-phonetic="Bon-zhur! Ko-man sa va?">🇫🇷 Francés</option>
+                            <option value="it-IT" data-text="Ciao! Come stai?" data-phonetic="Chao! Ko-me stai?">🇮🇹 Italiano</option>
+                            <option value="pt-BR" data-text="Olá! Como vai?" data-phonetic="O-la! Ko-mu vai?">🇧🇷 Portugués</option>
+                            <option value="ko-KR" data-text="안녕하세요! 어떻게 지내세요?" data-phonetic="An-nyeong-ha-se-yo!">🇰🇷 Coreano</option>
+                            <option value="zh-CN" data-text="你好！你好吗？" data-phonetic="Nǐ hǎo! Nǐ hǎo ma?">🇨🇳 Chino Mandarín</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Chat Simulado Interactivo -->
+                <div class="max-w-xl mx-auto bg-slate-900/90 border border-slate-700/80 rounded-2xl p-5 shadow-inner space-y-4">
+                    <!-- Mensaje Origen -->
+                    <div class="flex flex-col items-start bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4">
+                        <div class="flex items-center justify-between w-full mb-1">
+                            <span class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-user text-blue-400"></i> Tu Idioma Natal
+                            </span>
+                            <button id="btnPlayDemoFrom" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
+                                <i class="fa-solid fa-volume-high"></i> Escuchar
+                            </button>
+                        </div>
+                        <p id="demoTextFrom" class="text-white text-lg font-bold">¡Hola! ¿Cómo estás?</p>
+                        <p id="demoPhoneticFrom" class="text-xs text-blue-300 italic mt-0.5">Español</p>
+                    </div>
+
+                    <!-- Indicador de Traducción -->
+                    <div class="flex items-center justify-center text-slate-500 text-xs font-semibold gap-2">
+                        <div class="h-px bg-slate-700 flex-1"></div>
+                        <span class="bg-slate-800 px-3 py-1 rounded-full text-purple-300 border border-purple-500/20 flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Traducción Simultánea IA
+                        </span>
+                        <div class="h-px bg-slate-700 flex-1"></div>
+                    </div>
+
+                    <!-- Mensaje Traducido -->
+                    <div class="flex flex-col items-start bg-purple-950/40 border border-purple-500/30 rounded-2xl p-4">
+                        <div class="flex items-center justify-between w-full mb-1">
+                            <span class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-robot text-purple-400"></i> Traducción & Voz HD
+                            </span>
+                            <button id="btnPlayDemoTo" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
+                                <i class="fa-solid fa-volume-high"></i> Escuchar
+                            </button>
+                        </div>
+                        <p id="demoTextTo" class="text-white text-lg font-bold">こんにちは！お元気ですか？</p>
+                        <p id="demoPhoneticTo" class="text-xs text-purple-300 italic mt-0.5">Pronunciación: Konnichiwa! O-genki desu ka?</p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-6">
+                    <p class="text-xs text-slate-400 mb-3">
+                        <i class="fa-solid fa-circle-check text-green-400 mr-1"></i> La versión completa interpreta discursos completos, conversaciones largas y modismos locales.
+                    </p>
+                    <a href="#heroAuthSection" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm px-6 py-3 rounded-full shadow-lg shadow-purple-900/40 transition active:scale-95">
+                        <i class="fa-solid fa-bolt"></i> Obtener iChat Pro por $14 USD
+                    </a>
+                </div>
+            </section>
+
+            <!-- CÓMO FUNCIONA ICHAT (PASOS ILUSTRADOS CON SVG) -->
+            <section class="w-full mt-24 text-left">
+                <div class="text-center max-w-2xl mx-auto mb-12">
+                    <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-3">
+                        ¿Cómo funciona iChat en 3 pasos?
+                    </h2>
+                    <p class="text-slate-400 text-sm md:text-base">
+                        Diseñado para conversaciones dinámicas presenciales o remotas sin complicaciones técnicas.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Paso 1 -->
+                    <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 font-black text-lg flex items-center justify-center mb-4">
+                                1
+                            </div>
+                            <!-- Ilustración SVG 1 -->
+                            <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
+                                <svg class="w-24 h-24 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a24.12 24.12 0 018.653-.622m0 0A24.147 24.147 0 0112 18a24.135 24.135 0 01-4.015-10.378M3 5.621C4.301 3.518 6.452 2.25 9 2.25c2.548 0 4.699 1.268 6 3.371M3 5.621A24.12 24.12 0 0012 18"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-white text-lg mb-2">Selecciona tus Idiomas</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Elige tu idioma nativo y el idioma de tu interlocutor de una lista con más de 20 dialectos globales.</p>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 font-black text-lg flex items-center justify-center mb-4">
+                                2
+                            </div>
+                            <!-- Ilustración SVG 2 -->
+                            <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
+                                <svg class="w-24 h-24 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-white text-lg mb-2">Presiona y Habla</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Habla de forma natural por el micrófono. La tecnología de escucha continua transcribe tus palabras al instante.</p>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-full bg-green-500/20 text-green-400 font-black text-lg flex items-center justify-center mb-4">
+                                3
+                            </div>
+                            <!-- Ilustración SVG 3 -->
+                            <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
+                                <svg class="w-24 h-24 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.287a5.25 5.25 0 010 7.426M13.812 10.938a1.5 1.5 0 010 2.124M12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-white text-lg mb-2">Escucha en Voz HD</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">La inteligencia artificial traduce el significado exacto y lo reproduce en altavoz con pronunciación fluida.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TABLA COMPARATIVA DE VALOR DE POR VIDA -->
+            <section class="w-full mt-24 text-left bg-slate-800/30 border border-slate-700/50 rounded-3xl p-6 md:p-10">
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3.5 py-1 rounded-full">Inversión Inteligente</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight mt-3 mb-2">
+                        ¿Por qué $14 USD de por vida?
+                    </h2>
+                    <p class="text-slate-400 text-sm md:text-base">
+                        Olvídate de cobros recurrentes en tu tarjeta. Compara nuestro modelo frente a otros traductores convencionales:
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="border-b border-slate-700 text-slate-300 text-sm">
+                                <th class="py-4 px-4 font-bold">Característica</th>
+                                <th class="py-4 px-4 font-bold text-slate-400">Otros Traductores</th>
+                                <th class="py-4 px-4 font-extrabold text-purple-400 bg-purple-950/30 rounded-t-xl">iChat Pro</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800 text-sm">
+                            <tr>
+                                <td class="py-4 px-4 font-medium text-white">Costo de uso</td>
+                                <td class="py-4 px-4 text-red-400">$15 - $25 USD / mes ($180/año)</td>
+                                <td class="py-4 px-4 font-bold text-green-400 bg-purple-950/20">$14 USD (Pago único de por vida)</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-4 font-medium text-white">Voz Humana HD</td>
+                                <td class="py-4 px-4 text-slate-400">Voz robótica limitada</td>
+                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Sintetizador de alta fidelidad</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-4 font-medium text-white">Reconocimiento Dialectal</td>
+                                <td class="py-4 px-4 text-slate-400">Solo idiomas generales</td>
+                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Modismos regionales nativos</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-4 font-medium text-white">Publicidad molesta</td>
+                                <td class="py-4 px-4 text-red-400">Anuncios constantes</td>
+                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> 100% Sin anuncios</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-4 font-medium text-white">Acceso Multi-dispositivo</td>
+                                <td class="py-4 px-4 text-slate-400">Restringido a un dispositivo</td>
+                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Web, Móvil, Tablet y PC</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- CASOS DE USO -->
+            <section class="w-full mt-24 text-left">
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                    <h2 class="text-3xl font-bold text-white">Perfecto para cualquier situación</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-plane"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base mb-1">Viajes al Extranjero</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Pide indicaciones, ordena en restaurantes y habla con lugareños como si dominaras el idioma local.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base mb-1">Reuniones de Negocios</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Entabla negociaciones con clientes internacionales sin malentendidos ni barreras lingüísticas.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-green-500/10 text-green-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base mb-1">Aprendizaje de Idiomas</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Aprende la pronunciación correcta reproduciendo el audio en ambos idiomas tantas veces como quieras.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-people-arrows"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base mb-1">Amigos & Familiares</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Comunícate con familiares o amigos internacionales de forma cálida, cercana y directa.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PREGUNTAS FRECUENTES (FAQ) -->
+            <section class="w-full mt-24 text-left max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-white text-center mb-8">Preguntas Frecuentes</h2>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
+                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-blue-400 mr-2"></i> ¿El pago de $14 USD es realmente único?</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Sí, absolutamente. Haces un único pago seguro por PayPal y obtienes acceso Pro de por vida para tu cuenta de Google sin suscripciones ni mensualidades ocultas.</p>
+                    </div>
+
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
+                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-purple-400 mr-2"></i> ¿En qué dispositivos puedo usar iChat?</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Funciona en cualquier teléfono inteligente (iOS/Android), tablet o computadora con un navegador web moderno (Chrome, Safari, Edge, Firefox).</p>
+                    </div>
+
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
+                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-green-400 mr-2"></i> ¿Mis datos de voz están seguros?</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Sí. El audio se procesa en tiempo real para traducirse de forma efímera y no se almacena en servidores públicos. Cumplimos con las políticas de privacidad de Google y PayPal.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BANNER FINAL DE LLAMADA A LA ACCIÓN -->
+            <section class="w-full mt-20 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-8 md:p-12 text-center shadow-2xl">
+                <h2 class="text-3xl md:text-5xl font-black text-white mb-4">
+                    ¿Listo para comunicarte con el mundo?
+                </h2>
+                <p class="text-white/90 text-sm md:text-base max-w-xl mx-auto mb-8 font-medium">
+                    Únete hoy mismo con un único pago de $14 USD de por vida y desbloquea la traducción simultánea de voz con IA.
+                </p>
+                <a href="#heroAuthSection" class="bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-base px-8 py-4 rounded-2xl shadow-xl transition transform active:scale-95 inline-flex items-center gap-2">
+                    <i class="fa-solid fa-rocket text-purple-600"></i> Comenzar Ahora por $14 USD
+                </a>
+            </section>
         </main>
 
-        <footer class="text-center text-slate-500 text-xs py-6 border-t border-slate-800/60">
-            © 2026 iChat Voice Translator. Todos los derechos reservados.
+        <footer class="text-center text-slate-500 text-xs py-8 border-t border-slate-800/60 mt-12">
+            <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <span>© 2026 iChat Voice Translator. Todos los derechos reservados.</span>
+                <div class="flex gap-4">
+                    <a href="privacidad.html" class="text-slate-400 hover:text-white transition">Política de Privacidad</a>
+                    <a href="#heroAuthSection" class="text-slate-400 hover:text-white transition">Iniciar Sesión</a>
+                </div>
+            </div>
         </footer>
     </div>
 
@@ -555,6 +855,54 @@
 
     <!-- JS PRINCIPAL DEL TRADUCTOR -->
     <script>
+        // LOGICA DE LA DEMO INTERACTIVA EN EL LANDING PAGE
+        const demoLangFrom = document.getElementById('demoLangFrom');
+        const demoLangTo = document.getElementById('demoLangTo');
+        const demoTextFrom = document.getElementById('demoTextFrom');
+        const demoPhoneticFrom = document.getElementById('demoPhoneticFrom');
+        const demoTextTo = document.getElementById('demoTextTo');
+        const demoPhoneticTo = document.getElementById('demoPhoneticTo');
+        const btnPlayDemoFrom = document.getElementById('btnPlayDemoFrom');
+        const btnPlayDemoTo = document.getElementById('btnPlayDemoTo');
+
+        function updateDemoCard() {
+            if (!demoLangFrom || !demoLangTo) return;
+            const optFrom = demoLangFrom.options[demoLangFrom.selectedIndex];
+            const optTo = demoLangTo.options[demoLangTo.selectedIndex];
+
+            demoTextFrom.textContent = optFrom.getAttribute('data-text');
+            demoPhoneticFrom.textContent = optFrom.textContent.trim();
+
+            demoTextTo.textContent = optTo.getAttribute('data-text');
+            demoPhoneticTo.textContent = 'Pronunciación: ' + optTo.getAttribute('data-phonetic');
+        }
+
+        function speakDemoText(text, lang) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        if (demoLangFrom && demoLangTo) {
+            demoLangFrom.addEventListener('change', updateDemoCard);
+            demoLangTo.addEventListener('change', updateDemoCard);
+
+            btnPlayDemoFrom.addEventListener('click', () => {
+                const optFrom = demoLangFrom.options[demoLangFrom.selectedIndex];
+                speakDemoText(optFrom.getAttribute('data-text'), demoLangFrom.value);
+            });
+
+            btnPlayDemoTo.addEventListener('click', () => {
+                const optTo = demoLangTo.options[demoLangTo.selectedIndex];
+                speakDemoText(optTo.getAttribute('data-text'), demoLangTo.value);
+            });
+
+            updateDemoCard();
+        }
+
         const languages = [
             { code: 'es-MX', name: 'Español (México)' },
             { code: 'es-ES', name: 'Español (España)' },
