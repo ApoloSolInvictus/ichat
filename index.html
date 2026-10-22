@@ -271,6 +271,13 @@
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
+        // 👑 LISTA BLANCA DE DESARROLLADORES Y ADMINISTRADORES
+        // Agrega aquí los correos de Google con los que quieras entrar GRATIS siempre:
+        const ADMIN_EMAILS = [
+            'ronnywoods77@gmail.com',  // <-- Reemplaza por tu correo de Google
+            'info@wstudio3d.com'      // Correo de tu empresa / proyecto
+        ];
+
         // ⚠️ REEMPLAZA ESTOS VALORES CON TUS CREDENCIALES REALES DE FIREBASE CONSOLE
         // Obtén estos datos en: Firebase Console -> Configuración del proyecto (⚙️) -> General -> Tus aplicaciones
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
@@ -394,12 +401,20 @@
         async function checkUserPaymentAndGrantAccess(user) {
             currentUser = user;
             const paidLocally = localStorage.getItem(`ichat_paid_${user.uid}`);
+            
+            // Verificamos si el correo con el que inició sesión es un Administrador/Desarrollador
+            const isAdmin = user.email && ADMIN_EMAILS.some(email => email.toLowerCase() === user.email.toLowerCase());
 
-            if (paidLocally === 'true') {
+            if (paidLocally === 'true' || isAdmin) {
                 landingPage.classList.add('hidden');
                 translatorApp.classList.remove('hidden');
-                userEmail.textContent = user.email || user.displayName || "Usuario Pro";
-                showToast("¡Bienvenido a iChat Pro!", "success");
+                userEmail.textContent = (user.email || user.displayName || "Usuario Pro") + (isAdmin ? " 👑 (Dev)" : "");
+                
+                if (isAdmin) {
+                    showToast("¡Modo Desarrollador Activado! 👑", "success");
+                } else {
+                    showToast("¡Bienvenido a iChat Pro!", "success");
+                }
             } else {
                 landingPage.classList.remove('hidden');
                 translatorApp.classList.add('hidden');
