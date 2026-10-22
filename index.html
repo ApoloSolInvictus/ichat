@@ -271,15 +271,17 @@
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
+        // ⚠️ REEMPLAZA ESTOS VALORES CON TUS CREDENCIALES REALES DE FIREBASE CONSOLE
+        // Obtén estos datos en: Firebase Console -> Configuración del proyecto (⚙️) -> General -> Tus aplicaciones
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
-                apiKey: "AIzaSyDemoKeyForAuthRequirementPlaceholder",
-                authDomain: "ichat-app.firebaseapp.com",
-                projectId: "ichat-app",
-                storageBucket: "ichat-app.appspot.com",
-                messagingSenderId: "123456789",
-                appId: "1:123456789:web:demo"
+                apiKey: "AIzaSyA3tRv3GJcvoKvLRkDqh4n0HM_Wq666tGY",
+                authDomain: "ichat-d37e5.firebaseapp.com",
+                projectId: "ichat-d37e5",
+                storageBucket: "ichat-d37e5.firebasestorage.app",
+                messagingSenderId: "277683536356",
+                appId: "1:277683536356:web:3b82bbba6dac83b77ac7f1"
             };
 
         const app = initializeApp(firebaseConfig);
@@ -321,32 +323,37 @@
                     checkUserPaymentAndGrantAccess(result.user);
                 }
             } catch (popupErr) {
-                console.error("Detalle error Google Auth:", popupErr);
+                console.error("Detalle de error Google Auth:", popupErr);
 
-                // Si el navegador bloqueó la ventana emergente, recurrir a Redirect
-                if (popupErr.code === 'auth/popup-blocked') {
-                    showToast("Redirigiendo a Google...", "sync");
+                let errorTitle = "Error de Autenticación";
+                let errorMsg = popupErr.message || "No se pudo conectar con Google.";
+
+                // Diagnóstico preciso de errores de Firebase
+                if (popupErr.code === 'auth/unauthorized-domain') {
+                    errorTitle = "Dominio No Autorizado en Firebase";
+                    errorMsg = "Debes agregar 'ichat.wstudio3d.com' en Firebase Console -> Authentication -> Settings -> Authorized Domains.";
+                } else if (popupErr.code === 'auth/invalid-api-key' || popupErr.code === 'auth/api-key-not-valid-please-pass-a-valid-api-key') {
+                    errorTitle = "API Key Inválida";
+                    errorMsg = "Sustituye la API Key de ejemplo en index.html por tus credenciales reales de Firebase.";
+                } else if (popupErr.code === 'auth/operation-not-allowed') {
+                    errorTitle = "Proveedor Deshabilitado";
+                    errorMsg = "Habilita el inicio de sesión con Google en Firebase Console -> Authentication -> Sign-in method.";
+                } else if (popupErr.code === 'auth/popup-blocked') {
+                    showToast("Ventana emergente bloqueada. Redirigiendo...", "sync");
                     try {
                         await signInWithRedirect(auth, provider);
                         return;
                     } catch (redErr) {
                         console.error("Error en Redirect:", redErr);
                     }
-                }
-
-                // Diagnóstico preciso de error para el usuario en pantalla
-                let errorMsg = "Atención: No se pudo conectar con Google.";
-                if (popupErr.code === 'auth/unauthorized-domain') {
-                    errorMsg = "El dominio 'ichat.wstudio3d.com' debe agregarse a Firebase Console.";
-                } else if (popupErr.code === 'auth/invalid-api-key' || popupErr.code === 'auth/api-key-not-valid-please-pass-a-valid-api-key') {
-                    errorMsg = "Configura la API Key de Firebase.";
                 } else if (popupErr.code === 'auth/popup-closed-by-user') {
-                    errorMsg = "Inicio de sesión cancelado.";
+                    showToast("Inicio de sesión cancelado.", "warning");
+                    return;
                 }
 
-                showToast(errorMsg + " Accediendo en Modo Demo...", "warning");
+                showToast(`⚠️ ${errorTitle}: ${errorMsg}`, "error");
 
-                // Fallback automático para permitir probar la app y PayPal sin bloqueos
+                // Fallback automático en caso de falta de credenciales reales
                 setTimeout(async () => {
                     try {
                         const anonRes = await signInAnonymously(auth);
@@ -359,7 +366,7 @@
                         };
                         checkUserPaymentAndGrantAccess(localDemoUser);
                     }
-                }, 1200);
+                }, 2000);
             }
         }
 
