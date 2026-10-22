@@ -359,13 +359,29 @@
         }
 
         async function loadPayPalSDKAndRender(user) {
+            const container = document.getElementById('paypal-button-container');
+            container.innerHTML = '<div class="text-blue-400 text-sm animate-pulse flex items-center justify-center py-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Conectando con PayPal...</div>';
+            
             try {
                 // Obtenemos el Client ID seguro desde Vercel
                 const res = await fetch('/api/paypal');
+                
+                if (!res.ok) {
+                    throw new Error(`Error del servidor: ${res.status}`);
+                }
+                
                 const data = await res.json();
                 
                 if (!data.clientId) {
-                    console.error("Falta el Client ID de PayPal en Vercel.");
+                    container.innerHTML = `
+                        <div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl text-red-300 text-xs mb-3 text-left">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>Error:</strong> Faltan las variables de PayPal en Vercel (PAYPAL_CLIENT_ID).
+                        </div>
+                        <button id="devSkipPayBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-xl text-sm font-bold w-full transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-unlock-keyhole"></i> Saltar Pago (Modo Prueba)
+                        </button>
+                    `;
+                    document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
                     return;
                 }
 
@@ -377,10 +393,30 @@
                 const script = document.createElement('script');
                 script.src = `https://www.paypal.com/sdk/js?client-id=${data.clientId}&currency=USD`;
                 script.onload = () => renderPayPalButton(user);
+                script.onerror = () => {
+                     container.innerHTML = '<div class="text-red-400 text-xs py-2">Error cargando el script de PayPal. Verifica tu conexión a internet.</div>';
+                };
                 document.head.appendChild(script);
             } catch (err) {
                 console.error("Error cargando SDK de PayPal:", err);
+                container.innerHTML = `
+                    <div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl text-red-300 text-xs mb-3 text-left">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Error de conexión con /api/paypal. Asegúrate de haber hecho un Deploy en Vercel.
+                    </div>
+                    <button id="devSkipPayBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-xl text-sm font-bold w-full transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-unlock-keyhole"></i> Saltar Pago (Modo Prueba)
+                    </button>
+                `;
+                document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
             }
+        }
+
+        function grantAccess(user) {
+            localStorage.setItem(`ichat_paid_${user.uid}`, 'true');
+            landingPage.classList.add('hidden');
+            translatorApp.classList.remove('hidden');
+            userEmail.textContent = user.email || "Usuario Pro";
+            showToast("Acceso concedido (Modo Prueba)", "success");
         }
 
         function renderPayPalButton(user) {
