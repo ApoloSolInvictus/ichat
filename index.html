@@ -298,27 +298,68 @@
 
         let currentUser = null;
 
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                checkUserPaymentAndGrantAccess(result.user);
+            }
+        }).catch((err) => {
+            console.warn("Error en resultado de redirección:", err);
+        });
+
         async function handleGoogleLogin() {
+            showToast("Conectando con Google...", "sync");
+            
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                     return;
                 }
 
-                showToast("Conectando con Google...", "sync");
-                
-                try {
-                    await signInWithPopup(auth, provider);
-                } catch (popupErr) {
-                    if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user') {
+                // Intenta abrir el Pop-Up estándar de Google
+                const result = await signInWithPopup(auth, provider);
+                if (result && result.user) {
+                    checkUserPaymentAndGrantAccess(result.user);
+                }
+            } catch (popupErr) {
+                console.error("Detalle error Google Auth:", popupErr);
+
+                // Si el navegador bloqueó la ventana emergente, recurrir a Redirect
+                if (popupErr.code === 'auth/popup-blocked') {
+                    showToast("Redirigiendo a Google...", "sync");
+                    try {
                         await signInWithRedirect(auth, provider);
-                    } else {
-                        await signInAnonymously(auth);
+                        return;
+                    } catch (redErr) {
+                        console.error("Error en Redirect:", redErr);
                     }
                 }
-            } catch (error) {
-                console.warn("Entrando en modo demo:", error);
-                await signInAnonymously(auth);
+
+                // Diagnóstico preciso de error para el usuario en pantalla
+                let errorMsg = "Atención: No se pudo conectar con Google.";
+                if (popupErr.code === 'auth/unauthorized-domain') {
+                    errorMsg = "El dominio 'ichat.wstudio3d.com' debe agregarse a Firebase Console.";
+                } else if (popupErr.code === 'auth/invalid-api-key' || popupErr.code === 'auth/api-key-not-valid-please-pass-a-valid-api-key') {
+                    errorMsg = "Configura la API Key de Firebase.";
+                } else if (popupErr.code === 'auth/popup-closed-by-user') {
+                    errorMsg = "Inicio de sesión cancelado.";
+                }
+
+                showToast(errorMsg + " Accediendo en Modo Demo...", "warning");
+
+                // Fallback automático para permitir probar la app y PayPal sin bloqueos
+                setTimeout(async () => {
+                    try {
+                        const anonRes = await signInAnonymously(auth);
+                        checkUserPaymentAndGrantAccess(anonRes.user);
+                    } catch (anonErr) {
+                        const localDemoUser = {
+                            uid: 'demo_user_wstudio3d',
+                            email: 'demo@ichat.wstudio3d.com',
+                            displayName: 'Usuario Demo'
+                        };
+                        checkUserPaymentAndGrantAccess(localDemoUser);
+                    }
+                }, 1200);
             }
         }
 
@@ -328,27 +369,31 @@
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
-                localStorage.removeItem('ichat_paid_user');
-                showToast("Sesión cerrada correctamente", "info");
             } catch (e) {
-                landingPage.classList.remove('hidden');
-                translatorApp.classList.add('hidden');
+                console.warn("Nota de cierre de sesión:", e);
             }
+            if (currentUser) {
+                localStorage.removeItem(`ichat_paid_${currentUser.uid}`);
+            }
+            localStorage.removeItem('ichat_paid_user');
+            currentUser = null;
+            landingPage.classList.remove('hidden');
+            translatorApp.classList.add('hidden');
+            heroAuthSection.classList.remove('hidden');
+            paypalPayCard.classList.add('hidden');
+            showToast("Sesión cerrada correctamente", "info");
         });
 
-        // Verificar o Renderizar Botón de PayPal
         async function checkUserPaymentAndGrantAccess(user) {
             currentUser = user;
             const paidLocally = localStorage.getItem(`ichat_paid_${user.uid}`);
 
             if (paidLocally === 'true') {
-                // El usuario ya pagó $14 -> Dar acceso directo
                 landingPage.classList.add('hidden');
                 translatorApp.classList.remove('hidden');
-                userEmail.textContent = user.email || "Usuario Pro";
+                userEmail.textContent = user.email || user.displayName || "Usuario Pro";
                 showToast("¡Bienvenido a iChat Pro!", "success");
             } else {
-                // El usuario se logueó pero debe pagar $14
                 landingPage.classList.remove('hidden');
                 translatorApp.classList.add('hidden');
                 heroAuthSection.classList.add('hidden');
@@ -363,22 +408,21 @@
             container.innerHTML = '<div class="text-blue-400 text-sm animate-pulse flex items-center justify-center py-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Conectando con PayPal...</div>';
             
             try {
-                // Obtenemos el Client ID seguro desde Vercel
                 const res = await fetch('/api/paypal');
                 
                 if (!res.ok) {
-                    throw new Error(`Error del servidor: ${res.status}`);
+                    throw new Error(`Error del servidor (${res.status}) al conectar con /api/paypal`);
                 }
                 
                 const data = await res.json();
                 
                 if (!data.clientId) {
                     container.innerHTML = `
-                        <div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl text-red-300 text-xs mb-3 text-left">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>Error:</strong> Faltan las variables de PayPal en Vercel (PAYPAL_CLIENT_ID).
+                        <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> <strong>Falta PAYPAL_CLIENT_ID:</strong> Agrega esta variable en Vercel para procesar pagos reales.
                         </div>
-                        <button id="devSkipPayBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-xl text-sm font-bold w-full transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i> Saltar Pago (Modo Prueba)
+                        <button id="devSkipPayBtn" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-green-900/30 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-unlock-keyhole"></i> Probar App / Saltar Pago (Modo Prueba)
                         </button>
                     `;
                     document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
@@ -394,17 +438,25 @@
                 script.src = `https://www.paypal.com/sdk/js?client-id=${data.clientId}&currency=USD`;
                 script.onload = () => renderPayPalButton(user);
                 script.onerror = () => {
-                     container.innerHTML = '<div class="text-red-400 text-xs py-2">Error cargando el script de PayPal. Verifica tu conexión a internet.</div>';
+                     container.innerHTML = `
+                        <div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl text-red-300 text-xs mb-3 text-left">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> No se pudo cargar el SDK de PayPal. Revisa el Client ID o tu conexión.
+                        </div>
+                        <button id="devSkipPayBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-3 rounded-xl text-sm w-full transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-unlock-keyhole"></i> Probar App (Modo Prueba)
+                        </button>
+                     `;
+                     document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
                 };
                 document.head.appendChild(script);
             } catch (err) {
                 console.error("Error cargando SDK de PayPal:", err);
                 container.innerHTML = `
-                    <div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl text-red-300 text-xs mb-3 text-left">
-                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Error de conexión con /api/paypal. Asegúrate de haber hecho un Deploy en Vercel.
+                    <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
+                        <i class="fa-solid fa-info-circle text-amber-400 mr-1"></i> Backend de PayPal no detectado en el dominio actual.
                     </div>
-                    <button id="devSkipPayBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-xl text-sm font-bold w-full transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-unlock-keyhole"></i> Saltar Pago (Modo Prueba)
+                    <button id="devSkipPayBtn" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rocket"></i> Entrar al Traductor (Modo Prueba)
                     </button>
                 `;
                 document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
@@ -415,13 +467,13 @@
             localStorage.setItem(`ichat_paid_${user.uid}`, 'true');
             landingPage.classList.add('hidden');
             translatorApp.classList.remove('hidden');
-            userEmail.textContent = user.email || "Usuario Pro";
+            userEmail.textContent = user.email || user.displayName || "Usuario Pro";
             showToast("Acceso concedido (Modo Prueba)", "success");
         }
 
         function renderPayPalButton(user) {
             const container = document.getElementById('paypal-button-container');
-            container.innerHTML = ''; // Limpiar previo
+            container.innerHTML = ''; 
 
             if (window.paypal) {
                 paypal.Buttons({
@@ -432,17 +484,19 @@
                         label: 'pay'
                     },
                     createOrder: async function() {
-                        // Llama a tu backend de Vercel para crear la orden segura de $14
                         const res = await fetch('/api/paypal', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ action: 'create' })
                         });
                         const order = await res.json();
+                        if (!order.id) {
+                            showToast("Error creando orden de PayPal. Revisa credenciales.", "error");
+                            throw new Error("No order ID returned");
+                        }
                         return order.id;
                     },
                     onApprove: async function(data) {
-                        // Llama a tu backend para confirmar y capturar el dinero
                         const res = await fetch('/api/paypal', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -452,13 +506,7 @@
                         
                         if (details.status === 'COMPLETED') {
                             showToast("¡Pago exitoso! Activando tu cuenta...", "success");
-                            localStorage.setItem(`ichat_paid_${user.uid}`, 'true');
-                            
-                            setTimeout(() => {
-                                landingPage.classList.add('hidden');
-                                translatorApp.classList.remove('hidden');
-                                userEmail.textContent = user.email || "Usuario Pro";
-                            }, 1000);
+                            grantAccess(user);
                         } else {
                             showToast("El pago no pudo ser procesado.", "error");
                         }
