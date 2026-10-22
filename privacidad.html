@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad - iChat Voice Translator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .hero-gradient {
+            background: radial-gradient(circle at top center, rgba(59, 130, 246, 0.12) 0%, rgba(15, 23, 42, 0) 70%);
+        }
+
+        .glass-card {
+            background-color: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            backdrop-filter: blur(12px);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-900 text-slate-100 hero-gradient">
+
+    <header class="w-full border-b border-slate-800/80 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-language text-lg"></i>
+                </div>
+                <span class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">iChat</span>
+            </a>
+            <a href="index.html" class="text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-full border border-slate-700 transition flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i> Volver a la App
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-6 py-12 flex-1 w-full">
+        
+        <!-- Header Documento -->
+        <div class="mb-10 text-center md:text-left">
+            <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 px-3.5 py-1 rounded-full text-xs font-semibold mb-4">
+                <i class="fa-solid fa-shield-halved"></i> Transparencia y Seguridad
+            </div>
+            <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-3">
+                Política de Privacidad
+            </h1>
+            <p class="text-slate-400 text-sm md:text-base">
+                Última actualización: <strong>21 de Octubre, 2026</strong>
+            </p>
+        </div>
+
+        <div class="space-y-8">
+
+            <section class="glass-card p-6 md:p-8 rounded-3xl">
+                <h2 class="text-xl font-bold text-white mb-3 flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm font-bold">1</span>
+                    Introducción
+                </h2>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-3">
+                    En <strong>iChat Voice Translator</strong> ("nosotros", "nuestra aplicación" o "iChat"), nos tomamos muy en serio la privacidad de nuestros usuarios. Esta Política de Privacidad describe de manera clara cómo recopilamos, utilizamos, almacenamos y protegemos la información personal y los datos recopilados a través de nuestro sitio web y aplicación de traducción de voz en vivo.
+                </p>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                    Al utilizar iChat, aceptas las prácticas descritas en este documento. Si no estás de acuerdo con estos términos, te solicitamos no utilizar nuestros servicios.
+                </p>
+            </section>
+
+            <section class="glass-card p-6 md:p-8 rounded-3xl">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm font-bold">2</span>
+                    Información que Recopilamos
+                </h2>
+                
+                <div class="space-y-4 text-slate-300 text-sm md:text-base">
+                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                        <h3 class="font-bold text-white mb-1 flex items-center gap-2">
+                            <i class="fa-brands fa-google text-blue-400"></i> Autenticación de Google (Google OAuth)
+                        </h3>
+                        <p class="text-slate-400 text-sm">
+                            Cuando utilizas el inicio de sesión con Google (proporcionado a través de Firebase Authentication), únicamente recopilamos tu dirección de correo electrónico, tu nombre público y tu identificador único de usuario (UID). <strong>No tenemos acceso a tu contraseña ni a ningún otro dato privado de tu cuenta de Google.</strong>
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                        <h3 class="font-bold text-white mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-microphone text-purple-400"></i> Datos de Voz y Entrada de Audio
+                        </h3>
+                        <p class="text-slate-400 text-sm">
+                            Para ofrecer la función de interpretación en tiempo real, solicitamos acceso al micrófono de tu dispositivo. Las grabaciones de voz se procesan temporalmente de manera efímera para la conversión de voz a texto y su posterior traducción mediante IA. <strong>No almacenamos archivos de voz grabados permanentemente en nuestros servidores.</strong>
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                        <h3 class="font-bold text-white mb-1 flex items-center gap-2">
+                            <i class="fa-brands fa-paypal text-amber-400"></i> Información de Pago (PayPal)
+                        </h3>
+                        <p class="text-slate-400 text-sm">
+                            Los pagos por la licencia única de por vida ($14 USD) son procesados exclusivamente por PayPal. iChat no almacena números de tarjeta de crédito ni credenciales bancarias. Únicamente recibimos la confirmación del pago e identificador de transacción expedido por PayPal para habilitar el acceso Pro a tu cuenta.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-card p-6 md:p-8 rounded-3xl">
+                <h2 class="text-xl font-bold text-white mb-3 flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center text-sm font-bold">3</span>
+                    Uso de la Información
+                </h2>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-3">
+                    La información recopilada se utiliza estrictamente para las siguientes finalidades:
+                </p>
+                <ul class="list-disc list-inside space-y-2 text-slate-300 text-sm md:text-base pl-2">
+                    <li>Autenticar y gestionar tu acceso de usuario seguro en la aplicación.</li>
+                    <li>Procesar la entrada de audio y brindar traducciones e interpretaciones en tiempo real.</li>
+                    <li>Verificar la validez de tu acceso Pro tras la compra única por PayPal.</li>
+                    <li>Mantener la estabilidad, seguridad y el rendimiento óptimo del servicio.</li>
+                </ul>
+
+                <div class="mt-6 p-4 bg-blue-950/40 border border-blue-500/30 rounded-2xl">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">
+                        <i class="fa-solid fa-circle-check mr-1"></i> Cumplimiento de la Política de Datos de Usuario de Google
+                    </h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        El uso y la transferencia de la información recibida a través de las API de Google a cualquier otra aplicación se realizarán con arreglo a la <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" class="text-blue-400 underline hover:text-blue-300">Política de Datos de Usuario de los Servicios de API de Google</a>, incluidas las exigencias de "Uso Limitado". No vendemos datos de usuarios de Google a terceros.
+                    </p>
+                </div>
+            </section>
+
+            <section class="glass-card p-6 md:p-8 rounded-3xl">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">4</span>
+                    Servicios de Terceros y Transferencia de Datos
+                </h2>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-4">
+                    Para ofrecer la máxima calidad en interpretación y tecnología de voz, iChat utiliza servicios seguros de proveedores confiables:
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+                        <div class="text-blue-400 font-bold mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-fire text-amber-500"></i> Firebase Auth
+                        </div>
+                        <p class="text-xs text-slate-400">Gestiona la autenticación de usuarios de forma cifrada e infraestructura segura alojada por Google Cloud.</p>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+                        <div class="text-purple-400 font-bold mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-brain text-purple-400"></i> OpenAI API
+                        </div>
+                        <p class="text-xs text-slate-400">Procesa las solicitudes de traducción lingüística contextual y síntesis de voz con voz natural HD.</p>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+                        <div class="text-green-400 font-bold mb-1 flex items-center gap-2">
+                            <i class="fa-brands fa-paypal text-blue-400"></i> PayPal SDK
+                        </div>
+                        <p class="text-xs text-slate-400">Procesamiento seguro de transacciones monetarias cumpliendo con los estándares PCI-DSS.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-card p-6 md:p-8 rounded-3xl">
+                <h2 class="text-xl font-bold text-white mb-3 flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">5</span>
+                    Derechos del Usuario y Eliminación de Datos
+                </h2>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-4">
+                    Tienes derecho a acceder, corregir o solicitar la eliminación total de tus datos personales en cualquier momento. Si deseas solicitar la cancelación de tu cuenta o eliminar tus registros asociados a iChat, puedes enviar una solicitud formal a nuestro equipo de soporte.
+                </p>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                    Al cerrar tu sesión o revocar los permisos de Google desde la configuración de tu cuenta de Google, iChat dejará de tener acceso a tu perfil.
+                </p>
+            </section>
+
+            <section class="glass-card p-6 md:p-8 rounded-3xl text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-2">¿Tienes preguntas o dudas sobre tu privacidad?</h2>
+                    <p class="text-slate-400 text-sm">Estamos disponibles para responder tus inquietudes o procesar solicitudes de derechos de datos.</p>
+                </div>
+                <a href="mailto:soporte@ichat.wstudio3d.com" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-purple-900/30 transition flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-envelope"></i> Contactar Soporte
+                </a>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="text-center text-slate-500 text-xs py-8 border-t border-slate-800/80 mt-12">
+        <div class="max-w-4xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <span>© 2026 iChat Voice Translator. Todos los derechos reservados.</span>
+            <div class="flex gap-4">
+                <a href="privacidad.html" class="text-slate-400 hover:text-white transition">Política de Privacidad</a>
+                <a href="index.html" class="text-slate-400 hover:text-white transition">Aplicación</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
