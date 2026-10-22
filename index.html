@@ -6,6 +6,78 @@
     <title>iChat - Live AI Voice Translator & Real-Time Interpreter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style type="text/css">
+        /* 1. Ocultar la barra superior (banner iframe) de Google Translate */
+          .goog-te-banner-frame.skiptranslate,
+          .goog-te-banner-frame {
+           display: none !important;
+       }
+
+        /* 2. Prevenir que la página baje cuando Google Translate agregue su banner */
+      body {
+        top: 0px !important;
+        position: static !important;
+      }
+
+        /* 3. Ocultar tooltips, popups de traducción y sugerencias al pasar el mouse */
+           #goog-gt-tt,
+          .goog-te-balloon-frame,
+          .goog-tooltip,
+          .goog-tooltip:hover {
+           display: none !important;
+      }
+
+        /* 4. Evitar highlighting o resaltado de texto traducido */
+            .goog-text-highlight {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+      }
+
+        /* 5. Ocultar el widget desplegable por defecto de Google si solo usas traducción automática o selectores custom */
+            .goog-te-gadget {
+            display: none !important;
+      }
+
+        /* 6. Ocultar avisos de atribución y gadgets flotantes */
+            .goog-te-spinner-pos,
+            #google_translate_element {
+            display: none !important;
+    }
+</style>
+
+<div id="google_translate_element"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'es', // Idioma de origen de tu sitio (ej: 'es' para español, 'en' para inglés)
+      autoDisplay: false,  // Previene que se despliegue la barra o avisos automáticos
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+    }, 'google_translate_element');
+  }
+</script>
+
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script type="text/javascript">
+  (function() {
+    // Observer para eliminar márgenes del body en caso de que Google los inyecte dinámicamente
+    var observer = new MutationObserver(function(mutations) {
+      if (document.body.style.top !== '0px' && document.body.style.top !== '') {
+        document.body.style.top = '0px';
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', function() {
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['style']
+      });
+    });
+  })();
+</script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
