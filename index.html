@@ -686,6 +686,7 @@
             };
 
             recognition.onend = () => {
+                // Fix: Only restart if isRecording flag is explicitly active
                 if (isRecording) {
                     clearTimeout(restartTimeout);
                     restartTimeout = setTimeout(() => {
@@ -695,11 +696,21 @@
                     }, 100);
                 }
             };
+
+            recognition.onerror = (event) => {
+                console.warn('Speech recognition event info:', event.error);
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    clearTimeout(restartTimeout);
+                    isRecording = false;
+                    updateUIForRecording(false);
+                    showToast("Microphone permission denied or unavailable", "error");
+                }
+            };
         }
 
         function toggleRecording() {
             if (!recognition) {
-                showToast("Speech recognition not supported", "error");
+                showToast("Speech recognition not supported in this browser", "error");
                 return;
             }
             if (isRecording) {
@@ -710,10 +721,15 @@
             recognition.lang = langFromEl.value;
             isRecording = true;
             updateUIForRecording(true);
-            try { recognition.start(); } catch (e) {}
+            try { 
+                recognition.start(); 
+            } catch (e) {
+                console.warn('Recognition start error:', e);
+            }
         }
 
         function stopRecordingManually() {
+            // Fix: Immediately clear timeouts and set recording state to false
             clearTimeout(restartTimeout);
             isRecording = false;
             updateUIForRecording(false);
