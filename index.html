@@ -6,107 +6,50 @@
     <title>iChat - Live AI Voice Translator & Real-Time Interpreter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PayPal SDK CDN -->
+    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
 
     <style type="text/css">
         /* 1. Ocultar la barra superior (banner iframe) de Google Translate */
-          .goog-te-banner-frame.skiptranslate,
-          .goog-te-banner-frame {
-           display: none !important;
-       }
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-banner-frame {
+            display: none !important;
+        }
 
         /* 2. Prevenir que la página baje cuando Google Translate agregue su banner */
-      body {
-        top: 0px !important;
-        position: static !important;
-      }
-
-        /* 3. Ocultar tooltips, popups de traducción y sugerencias al pasar el mouse */
-           #goog-gt-tt,
-          .goog-te-balloon-frame,
-          .goog-tooltip,
-          .goog-tooltip:hover {
-           display: none !important;
-      }
-
-        /* 4. Evitar highlighting o resaltado de texto traducido */
-            .goog-text-highlight {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-      }
-
-        /* 5. Ocultar el widget desplegable por defecto de Google si solo usas traducción automática o selectores custom */
-            .goog-te-gadget {
-            display: none !important;
-      }
-
-        /* 6. Ocultar avisos de atribución y gadgets flotantes */
-            .goog-te-spinner-pos,
-            #google_translate_element {
-            display: none !important;
-    }
-</style>
-
-<div id="google_translate_element"></div>
-
-<script type="text/javascript">
-  function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'es', // Idioma de origen de tu sitio (ej: 'es' para español, 'en' para inglés)
-      autoDisplay: false,  // Previene que se despliegue la barra o avisos automáticos
-      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-    }, 'google_translate_element');
-  }
-</script>
-
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-<script type="text/javascript">
-  (function() {
-    // Observer para eliminar márgenes del body en caso de que Google los inyecte dinámicamente
-    var observer = new MutationObserver(function(mutations) {
-      if (document.body.style.top !== '0px' && document.body.style.top !== '') {
-        document.body.style.top = '0px';
-      }
-    });
-
-    window.addEventListener('DOMContentLoaded', function() {
-      observer.observe(document.body, {
-        attributes: true,
-        attributeFilter: ['style']
-      });
-    });
-  })();
-</script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
         body {
+            top: 0px !important;
+            position: static !important;
             font-family: 'Inter', sans-serif;
             background-color: #0f172a;
             color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
-            top: 0px !important;
-            position: static !important;
         }
 
-        /* Suppress Google Translate banner frames, tooltips, and highlights without hiding DOM container */
-        .goog-te-banner-frame,
-        .goog-te-banner-frame.skiptranslate,
-        .goog-te-balloon-frame,
+        /* 3. Ocultar tooltips, popups de traducción y sugerencias al pasar el mouse */
         #goog-gt-tt,
-        .goog-te-spinner-pos,
+        .goog-te-balloon-frame,
         .goog-tooltip,
-        .goog-tooltip:hover,
-        .goog-text-highlight {
+        .goog-tooltip:hover {
             display: none !important;
-            visibility: hidden !important;
+        }
+
+        /* 4. Evitar highlighting o resaltado de texto traducido */
+        .goog-text-highlight {
             background-color: transparent !important;
+            border: none !important;
             box-shadow: none !important;
         }
 
-        /* Keep hidden from view while allowing full DOM initialization */
+        /* 5. Ocultar el widget desplegable por defecto de Google si solo usas traducción automática o selectores custom */
+        .goog-te-gadget {
+            display: none !important;
+        }
+
+        /* 6. Ocultar avisos de atribución y gadgets flotantes */
+        .goog-te-spinner-pos,
         #google_translate_element {
             position: absolute !important;
             top: -9999px !important;
@@ -119,8 +62,12 @@
         }
 
         ::-webkit-scrollbar {
-            width: 0px;
+            width: 6px;
             background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.3);
+            border-radius: 9999px;
         }
 
         .chat-bubble {
@@ -129,44 +76,34 @@
             word-wrap: break-word;
         }
 
-        .chat-bubble-source {
-            border-bottom-right-radius: 4px;
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-        }
-
-        .chat-bubble-translated {
-            border-bottom-left-radius: 4px;
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .pulse-ring {
+        .mic-pulse {
+            position: relative;
+        }
+        .mic-pulse::before {
+            content: '';
             position: absolute;
-            width: 100%;
-            height: 100%;
+            top: -8px; left: -8px; right: -8px; bottom: -8px;
+            background: rgba(239, 68, 68, 0.3);
             border-radius: 50%;
-            background-color: rgba(59, 130, 246, 0.5);
-            z-index: -1;
-            animation: pulse 1.5s infinite;
-            display: none;
+            z-index: 0;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+        .mic-pulse.recording::before {
+            opacity: 1;
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
         }
 
-        .recording .pulse-ring {
-            display: block;
-        }
-
-        .recording .recording-button {
-            background-color: #ef4444;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.5); opacity: 0; }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.25); opacity: 0.3; }
+            100% { transform: scale(1.4); opacity: 0; }
         }
 
         select {
@@ -176,24 +113,47 @@
             background-position: right 1rem top 50%;
             background-size: 0.65rem auto;
         }
-        
-        #toast {
-            transition: opacity 0.3s, transform 0.3s;
-            pointer-events: none;
-        }
 
         .hero-gradient {
             background: radial-gradient(circle at top center, rgba(59, 130, 246, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
         }
     </style>
+
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'es',
+          autoDisplay: false,
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script type="text/javascript">
+      (function() {
+        var observer = new MutationObserver(function(mutations) {
+          if (document.body.style.top !== '0px' && document.body.style.top !== '') {
+            document.body.style.top = '0px';
+          }
+        });
+
+        window.addEventListener('DOMContentLoaded', function() {
+          observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['style']
+          });
+        });
+      })();
+    </script>
 </head>
-<body class="h-screen w-screen overflow-x-hidden flex flex-col bg-slate-900 text-slate-100">
+<body class="min-h-screen w-screen overflow-x-hidden flex flex-col bg-slate-900 text-slate-100">
 
     <!-- Hidden element for Google Translate JS API -->
     <div id="google_translate_element"></div>
 
-    <!-- LANDING PAGE -->
-    <div id="landingPage" class="min-h-screen w-full flex flex-col justify-between hero-gradient px-4 py-8 max-w-4xl mx-auto">
+    <!-- LANDING PAGE SECTION -->
+    <div id="landingPage" class="min-h-screen w-full flex flex-col justify-between hero-gradient px-4 py-8 max-w-5xl mx-auto">
         
         <!-- Header Landing -->
         <header class="flex justify-between items-center w-full pb-6 border-b border-slate-800 relative z-50">
@@ -208,7 +168,6 @@
                 <!-- SATURN PLANET GLOBAL TRANSLATOR MENU -->
                 <div class="relative group" id="saturnMenuContainer">
                     <button id="saturnBtn" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-purple-500/40 px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-2 transition shadow-md shadow-purple-900/20">
-                        <!-- Saturn Planet SVG -->
                         <svg class="w-5 h-5 text-purple-400 group-hover:rotate-12 transition-transform duration-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="5" fill="#8b5cf6" fill-opacity="0.2" stroke="#a855f7" />
                             <ellipse cx="12" cy="12" rx="10" ry="3.5" transform="rotate(-25 12 12)" stroke="#c084fc" stroke-width="1.8" />
@@ -312,13 +271,13 @@
 
                 <div class="text-center max-w-2xl mx-auto mb-8">
                     <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-purple-400/30 text-purple-300 px-4 py-1.5 rounded-full text-xs font-bold mb-3">
-                        <i class="fa-solid fa-sparkles text-pink-400"></i> Live Interactive Demo Powered by OpenAI
+                        <i class="fa-solid fa-sparkles text-pink-400"></i> Live Interactive Demo Powered by AI
                     </div>
                     <h2 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
-                        Try Live OpenAI Translation Here
+                        Try Live Translation Here
                     </h2>
                     <p class="text-slate-400 text-sm md:text-base mt-2">
-                        Select any source & target language or type your custom message to test live OpenAI translation and HD voice output.
+                        Select any source & target language or type your custom message to test live translation and HD voice output.
                     </p>
                 </div>
 
@@ -327,890 +286,290 @@
                     <div>
                         <label class="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">1. Your native language:</label>
                         <select id="demoLangFrom" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                            <!-- Populated dynamically -->
+                            <option value="es-ES">Spanish (Español)</option>
+                            <option value="en-US">English (US)</option>
+                            <option value="fr-FR">French (Français)</option>
+                            <option value="de-DE">German (Deutsch)</option>
+                            <option value="it-IT">Italian (Italiano)</option>
+                            <option value="pt-BR">Portuguese (Brasil)</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">2. Language to learn / translate:</label>
                         <select id="demoLangTo" class="w-full bg-slate-800 text-white border border-slate-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
-                            <!-- Populated dynamically -->
+                            <option value="en-US">English (US)</option>
+                            <option value="es-ES">Spanish (Español)</option>
+                            <option value="fr-FR">French (Français)</option>
+                            <option value="de-DE">German (Deutsch)</option>
+                            <option value="it-IT">Italian (Italiano)</option>
+                            <option value="pt-BR">Portuguese (Brasil)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Interactive Simulated OpenAI Chat -->
+                <!-- Interactive Demo Card -->
                 <div class="max-w-2xl mx-auto bg-slate-900/90 border border-slate-700/80 rounded-2xl p-5 shadow-inner space-y-4">
-                    <!-- Source Input Card -->
                     <div class="flex flex-col items-start bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4 w-full">
                         <div class="flex items-center justify-between w-full mb-2">
                             <span class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
                                 <i class="fa-solid fa-user text-blue-400"></i> Phrase / Speech Input
                             </span>
-                            <button id="btnPlayDemoFrom" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 border border-slate-600">
-                                <i class="fa-solid fa-volume-high"></i> Listen Input
-                            </button>
                         </div>
-                        <input id="demoInputText" type="text" value="Hello! How are you doing today?" class="notranslate w-full bg-slate-800/90 border border-blue-500/40 rounded-xl px-3.5 py-2.5 text-white text-base font-medium focus:ring-2 focus:ring-blue-500 outline-none mb-1" placeholder="Type any text to test OpenAI live translation...">
-                        <p id="demoPhoneticFrom" class="text-xs text-blue-300 italic mt-0.5">English (US)</p>
-                    </div>
-
-                    <!-- Translation Bar with OpenAI Action -->
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-800/70 p-3 rounded-2xl border border-slate-700/60">
-                        <div class="flex items-center gap-2 text-xs text-purple-300">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm animate-pulse"></i>
-                            <span id="demoStatusText">Powered by OpenAI gpt-4o & TTS HD Voice</span>
-                        </div>
-                        <button id="btnTranslateDemo" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:to-pink-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-bolt"></i> Translate with OpenAI
+                        <input id="demoInputText" type="text" value="Hola, ¿cómo estás hoy? Quisiera probar el traductor en tiempo real." class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 mb-3" />
+                        <button id="btnRunDemo" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Translate Demo
                         </button>
                     </div>
 
-                    <!-- Translated Card -->
-                    <div class="flex flex-col items-start bg-purple-950/40 border border-purple-500/30 rounded-2xl p-4 w-full">
-                        <div class="flex items-center justify-between w-full mb-1">
-                            <span class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-robot text-purple-400"></i> OpenAI AI Translation & HD Voice
-                            </span>
-                            <button id="btnPlayDemoTo" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
-                                <i class="fa-solid fa-volume-high"></i> Listen HD Voice
-                            </button>
-                        </div>
-                        <p id="demoTextTo" class="text-white text-lg font-bold min-h-[28px] flex items-center">
-                            ¡Hola! ¿Cómo estás hoy?
-                        </p>
-                        <p id="demoPhoneticTo" class="text-xs text-purple-300 italic mt-1">Spanish (México)</p>
+                    <div id="demoResultBox" class="hidden flex flex-col items-start bg-purple-950/40 border border-purple-500/30 rounded-2xl p-4 w-full">
+                        <span class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-sparkles text-purple-400"></i> AI Output Translation
+                        </span>
+                        <p id="demoTranslatedText" class="text-base text-white font-semibold mb-3"></p>
+                        <button id="btnPlayDemoAudio" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-xl flex items-center gap-2 transition font-semibold">
+                            <i class="fa-solid fa-volume-high"></i> Listen Output Audio
+                        </button>
                     </div>
                 </div>
-
-                <div class="text-center mt-6">
-                    <p class="text-xs text-slate-400 mb-3">
-                        <i class="fa-solid fa-circle-check text-green-400 mr-1"></i> Live demo connected directly to OpenAI language models & voice output.
-                    </p>
-                    <a href="#heroAuthSection" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm px-6 py-3 rounded-full shadow-lg shadow-purple-900/40 transition active:scale-95">
-                        <i class="fa-solid fa-bolt"></i> Get <span class="notranslate">iChat</span> Pro for $14 USD
-                    </a>
-                </div>
-            </section>
-
-            <!-- HOW ICHAT WORKS SECTION -->
-            <section class="w-full mt-24 text-left">
-                <div class="text-center max-w-2xl mx-auto mb-12">
-                    <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-3">
-                        How <span class="notranslate">iChat</span> Works in 3 Steps
-                    </h2>
-                    <p class="text-slate-400 text-sm md:text-base">
-                        Engineered for effortless dynamic conversations—in person or remotely.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Step 1 -->
-                    <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 font-black text-lg flex items-center justify-center mb-4">
-                                1
-                            </div>
-                            <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
-                                <svg class="w-24 h-24 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a24.12 24.12 0 018.653-.622m0 0A24.147 24.147 0 0112 18a24.135 24.135 0 01-4.015-10.378M3 5.621C4.301 3.518 6.452 2.25 9 2.25c2.548 0 4.699 1.268 6 3.371M3 5.621A24.12 24.12 0 0012 18"></path>
-                                </svg>
-                            </div>
-                            <h3 class="font-bold text-white text-lg mb-2">Select Your Languages</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Choose your native language and your partner's language from over 20 global dialects.</p>
-                        </div>
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 font-black text-lg flex items-center justify-center mb-4">
-                                2
-                            </div>
-                            <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
-                                <svg class="w-24 h-24 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"></path>
-                                </svg>
-                            </div>
-                            <h3 class="font-bold text-white text-lg mb-2">Press & Speak</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Speak naturally into the microphone. Continuous listening transcribes your speech in real time.</p>
-                        </div>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-3xl relative flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-full bg-green-500/20 text-green-400 font-black text-lg flex items-center justify-center mb-4">
-                                3
-                            </div>
-                            <div class="w-full h-32 bg-slate-900/60 rounded-2xl mb-4 flex items-center justify-center border border-slate-700/40 p-4">
-                                <svg class="w-24 h-24 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.287a5.25 5.25 0 010 7.426M13.812 10.938a1.5 1.5 0 010 2.124M12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5z"></path>
-                                </svg>
-                            </div>
-                            <h3 class="font-bold text-white text-lg mb-2">Listen in HD Voice</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Artificial intelligence translates the exact meaning and plays it back with natural speaker pronunciation.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- COMPARISON TABLE SECTION -->
-            <section class="w-full mt-24 text-left bg-slate-800/30 border border-slate-700/50 rounded-3xl p-6 md:p-10">
-                <div class="text-center max-w-2xl mx-auto mb-10">
-                    <span class="text-xs font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3.5 py-1 rounded-full">Smart Investment</span>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight mt-3 mb-2">
-                        Why $14 USD Lifetime?
-                    </h2>
-                    <p class="text-slate-400 text-sm md:text-base">
-                        Forget recurring credit card charges. Compare our model against traditional voice translators:
-                    </p>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[500px]">
-                        <thead>
-                            <tr class="border-b border-slate-700 text-slate-300 text-sm">
-                                <th class="py-4 px-4 font-bold">Feature</th>
-                                <th class="py-4 px-4 font-bold text-slate-400">Other Translators</th>
-                                <th class="py-4 px-4 font-extrabold text-purple-400 bg-purple-950/30 rounded-t-xl notranslate">iChat Pro</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800 text-sm">
-                            <tr>
-                                <td class="py-4 px-4 font-medium text-white">Usage Cost</td>
-                                <td class="py-4 px-4 text-red-400">$15 - $25 USD / month ($180/year)</td>
-                                <td class="py-4 px-4 font-bold text-green-400 bg-purple-950/20">$14 USD (One-time lifetime payment)</td>
-                            </tr>
-                            <tr>
-                                <td class="py-4 px-4 font-medium text-white">HD Human Voice</td>
-                                <td class="py-4 px-4 text-slate-400">Robotic basic voice</td>
-                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> High-fidelity speech synthesizer</td>
-                            </tr>
-                            <tr>
-                                <td class="py-4 px-4 font-medium text-white">Dialect Recognition</td>
-                                <td class="py-4 px-4 text-slate-400">Standard languages only</td>
-                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Native regional idioms & slang</td>
-                            </tr>
-                            <tr>
-                                <td class="py-4 px-4 font-medium text-white">Annoying Ads</td>
-                                <td class="py-4 px-4 text-red-400">Constant video ads</td>
-                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> 100% Ad-free experience</td>
-                            </tr>
-                            <tr>
-                                <td class="py-4 px-4 font-medium text-white">Multi-device Access</td>
-                                <td class="py-4 px-4 text-slate-400">Restricted to 1 device</td>
-                                <td class="py-4 px-4 text-purple-300 bg-purple-950/20 font-semibold"><i class="fa-solid fa-check text-green-400 mr-1.5"></i> Web, Mobile, Tablet & PC</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- USE CASES -->
-            <section class="w-full mt-24 text-left">
-                <div class="text-center max-w-2xl mx-auto mb-10">
-                    <h2 class="text-3xl font-bold text-white">Perfect for Any Situation</h2>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
-                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl shrink-0">
-                            <i class="fa-solid fa-plane"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-white text-base mb-1">Overseas Travel</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Ask for directions, order at restaurants, and talk to locals like a native speaker.</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
-                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl shrink-0">
-                            <i class="fa-solid fa-briefcase"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-white text-base mb-1">Business Meetings</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Conduct smooth negotiations with international clients without misunderstandings.</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
-                        <div class="w-12 h-12 rounded-xl bg-green-500/10 text-green-400 flex items-center justify-center text-xl shrink-0">
-                            <i class="fa-solid fa-graduation-cap"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-white text-base mb-1">Language Learning</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Master natural pronunciation by replaying translated audio in both languages as often as you like.</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
-                        <div class="w-12 h-12 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center text-xl shrink-0">
-                            <i class="fa-solid fa-people-arrows"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-white text-base mb-1">Friends & Family</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Connect with international family members or friends in a warm, direct manner.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- FAQ SECTION -->
-            <section class="w-full mt-24 text-left max-w-3xl mx-auto">
-                <h2 class="text-3xl font-bold text-white text-center mb-8">Frequently Asked Questions</h2>
-
-                <div class="space-y-4">
-                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
-                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-blue-400 mr-2"></i> Is the $14 USD payment truly one-time?</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">Yes, absolutely. Make a single secure payment via PayPal and get Pro lifetime access for your Google account with no subscriptions or hidden fees.</p>
-                    </div>
-
-                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
-                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-purple-400 mr-2"></i> Which devices can I use <span class="notranslate">iChat</span> on?</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">It works seamlessly on any smartphone (iOS/Android), tablet, or desktop computer using a modern web browser (Chrome, Safari, Edge, Firefox).</p>
-                    </div>
-
-                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5">
-                        <h3 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-circle-question text-green-400 mr-2"></i> Is my voice data secure?</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">Yes. Speech is processed transiently in real time and is never stored on public servers. We comply fully with Google User Data & PayPal security standards.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- CALL TO ACTION BANNER -->
-            <section class="w-full mt-20 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-8 md:p-12 text-center shadow-2xl">
-                <h2 class="text-3xl md:text-5xl font-black text-white mb-4">
-                    Ready to communicate with the world?
-                </h2>
-                <p class="text-white/90 text-sm md:text-base max-w-xl mx-auto mb-8 font-medium">
-                    Join today with a single $14 USD lifetime payment and unlock AI-powered simultaneous voice translation.
-                </p>
-                <a href="#heroAuthSection" class="bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-base px-8 py-4 rounded-2xl shadow-xl transition transform active:scale-95 inline-flex items-center gap-2">
-                    <i class="fa-solid fa-rocket text-purple-600"></i> Get Started Now for $14 USD
-                </a>
             </section>
         </main>
 
-        <footer class="text-center text-slate-500 text-xs py-8 border-t border-slate-800/60 mt-12">
-            <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <span>© 2026 <span class="notranslate">iChat</span> Voice Translator. All rights reserved.</span>
-                <div class="flex gap-4">
-                    <a href="privacidad.html" class="text-slate-400 hover:text-white transition">Privacy Policy</a>
-                    <a href="#heroAuthSection" class="text-slate-400 hover:text-white transition">Sign In</a>
-                </div>
-            </div>
+        <footer class="text-center text-xs text-slate-500 py-6 border-t border-slate-800/60 mt-12">
+            © 2026 <span class="notranslate">iChat</span>. All rights reserved. Powered by OpenAI & ElevenLabs.
         </footer>
     </div>
 
+    <!-- MAIN CHAT APP SECTION (ACCESSIBLE AFTER LOGIN / PAYMENT) -->
+    <div id="chatApp" class="hidden min-h-screen w-full flex flex-col max-w-5xl mx-auto p-4 md:p-6 gap-6">
+        <!-- Top App Header -->
+        <header class="w-full border-b border-white/10 pb-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-language text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent notranslate">iChat Live</h1>
+                    <p class="text-xs text-indigo-300/70 font-medium">AI Real-Time Voice Interpreter</p>
+                </div>
+            </div>
 
-    <!-- MAIN WEB APP INTERFACE -->
-    <div id="translatorApp" class="hidden h-screen w-screen flex flex-col overflow-hidden relative">
-
-        <header class="bg-slate-800 pt-6 pb-4 px-6 shadow-md z-10 flex justify-between items-center relative">
-            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 notranslate">
-                <i class="fa-solid fa-language mr-2 text-blue-400"></i>iChat
-            </h1>
-            <div class="flex items-center gap-3">
-                <span id="userEmail" class="text-xs text-slate-400 hidden sm:inline"></span>
-                
-                <!-- SATURN PLANET BUTTON IN MAIN APP HEADER -->
-                <button id="saturnBtnApp" class="bg-slate-700/80 hover:bg-slate-600 text-purple-300 p-2 rounded-xl border border-purple-500/30 transition shadow flex items-center gap-1.5 text-xs font-semibold" title="Translate Page">
-                    <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5" fill="#8b5cf6" fill-opacity="0.2" stroke="#a855f7" />
-                        <ellipse cx="12" cy="12" rx="10" ry="3.5" transform="rotate(-25 12 12)" stroke="#c084fc" stroke-width="1.8" />
-                    </svg>
-                </button>
-
-                <button id="logoutBtn" title="Sign Out" class="text-slate-400 hover:text-red-400 text-sm bg-slate-700/60 p-2 rounded-xl border border-slate-600 transition">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
+            <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    ElevenLabs Ready
+                </span>
             </div>
         </header>
 
-        <div class="bg-slate-800/50 p-4 shadow-sm z-10 flex gap-2 border-b border-slate-700/50">
-            <div class="flex-1 relative">
-                <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">You Speak</label>
-                <select id="langFrom" class="w-full bg-slate-700 text-white rounded-xl py-2.5 pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition border border-slate-600 shadow-inner">
-                </select>
+        <!-- Language Selector Bar -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-800/40 p-3 rounded-2xl border border-white/10 shadow-2xl">
+            <!-- Source Language -->
+            <div class="md:col-span-5 flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-white/5">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-sm">
+                    <i class="fa-solid fa-microphone text-xs"></i>
+                </div>
+                <div class="flex-1">
+                    <label for="langFrom" class="block text-[10px] uppercase tracking-wider font-bold text-slate-400">Speak / Input</label>
+                    <select id="langFrom" class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none cursor-pointer">
+                        <option value="es-ES" class="bg-slate-800 text-white">Spanish (Español)</option>
+                        <option value="en-US" class="bg-slate-800 text-white">English (US)</option>
+                        <option value="fr-FR" class="bg-slate-800 text-white">French (Français)</option>
+                        <option value="de-DE" class="bg-slate-800 text-white">German (Deutsch)</option>
+                        <option value="it-IT" class="bg-slate-800 text-white">Italian (Italiano)</option>
+                        <option value="pt-BR" class="bg-slate-800 text-white">Portuguese (Brasil)</option>
+                        <option value="zh-CN" class="bg-slate-800 text-white">Chinese (Mandarin)</option>
+                        <option value="ja-JP" class="bg-slate-800 text-white">Japanese (日本語)</option>
+                    </select>
+                </div>
             </div>
-            <div class="flex flex-col justify-end pb-1">
-                <button id="swapLangs" title="Swap Languages" class="w-9 h-9 rounded-full bg-slate-700 text-blue-400 hover:bg-slate-600 hover:text-white transition flex items-center justify-center border border-slate-600 active:scale-90">
-                    <i class="fa-solid fa-arrow-right-arrow-left text-xs"></i>
+
+            <!-- Swap Languages Button -->
+            <div class="md:col-span-2 flex justify-center">
+                <button id="swapLangsBtn" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-indigo-600 border border-white/10 text-slate-300 hover:text-white transition-all flex items-center justify-center shadow-lg active:scale-95">
+                    <i class="fa-solid fa-arrows-rotate"></i>
                 </button>
             </div>
-            <div class="flex-1 relative">
-                <label class="text-[10px] text-slate-400 mb-1 block uppercase tracking-wider font-semibold">Translate To</label>
-                <select id="langTo" class="w-full bg-slate-700 text-white rounded-xl py-2.5 pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-purple-500 transition border border-slate-600 shadow-inner">
-                </select>
+
+            <!-- Target Language -->
+            <div class="md:col-span-5 flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-white/5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-sm">
+                    <i class="fa-solid fa-volume-high text-xs"></i>
+                </div>
+                <div class="flex-1">
+                    <label for="langTo" class="block text-[10px] uppercase tracking-wider font-bold text-slate-400">Translate / Voice Output</label>
+                    <select id="langTo" class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none cursor-pointer">
+                        <option value="en-US" class="bg-slate-800 text-white">English (US)</option>
+                        <option value="es-ES" class="bg-slate-800 text-white">Spanish (Español)</option>
+                        <option value="fr-FR" class="bg-slate-800 text-white">French (Français)</option>
+                        <option value="de-DE" class="bg-slate-800 text-white">German (Deutsch)</option>
+                        <option value="it-IT" class="bg-slate-800 text-white">Italian (Italiano)</option>
+                        <option value="pt-BR" class="bg-slate-800 text-white">Portuguese (Brasil)</option>
+                        <option value="zh-CN" class="bg-slate-800 text-white">Chinese (Mandarin)</option>
+                        <option value="ja-JP" class="bg-slate-800 text-white">Japanese (日本語)</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <main id="chatArea" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-36">
-            <div id="welcomeMessage" class="text-center text-slate-400 text-sm mt-6 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
-                <i class="fa-solid fa-microphone-slash text-2xl text-blue-400 mb-2 block"></i>
-                Select languages, press the microphone to speak, and tap <strong>Finish</strong> to translate instantly with HD voice.
-            </div>
-            
-            <div id="livePreviewContainer" class="hidden w-full my-2 bg-blue-950/40 border border-blue-500/30 rounded-2xl p-4 transition-all">
-                <div class="flex items-center gap-2 text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">
-                    <span class="relative flex h-2 w-2">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                    </span>
-                    Listening live...
+        <!-- Chat / Translation Log Feed -->
+        <div id="chatFeed" class="flex-1 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 p-4 rounded-2xl bg-slate-900/40 border border-white/10 shadow-inner flex flex-col">
+            <div id="welcomeMessage" class="m-auto text-center max-w-sm py-8 text-slate-400">
+                <div class="w-16 h-16 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-4 text-indigo-400 text-2xl">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
-                <p id="livePreviewText" class="text-slate-200 text-sm italic min-h-[20px]">
-                    Speak now...
-                </p>
+                <h3 class="text-white font-semibold text-lg mb-1">Ready for Translation</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Tap the microphone below to speak continuously or type text to translate instantly into realistic voice audio.</p>
             </div>
-        </main>
+        </div>
 
-        <div class="absolute bottom-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent pt-10 pb-8 px-6 flex justify-center z-20">
-            <div class="flex items-center gap-6">
-                <div id="micContainer" class="relative flex items-center justify-center">
-                    <div class="pulse-ring"></div>
-                    <button id="recordBtn" class="recording-button bg-blue-600 text-white w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-blue-900/50 hover:bg-blue-500 active:scale-95 z-10">
-                        <i class="fa-solid fa-microphone"></i>
+        <!-- Live Preview Area during recording -->
+        <div id="livePreviewContainer" class="hidden bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Live Transcript</span>
+            </div>
+            <p id="livePreviewText" class="text-sm text-slate-200 italic font-medium">Listening...</p>
+        </div>
+
+        <!-- Input & Controls Area -->
+        <div class="p-3 rounded-2xl border border-white/10 bg-slate-900/80 shadow-2xl space-y-3">
+            <div class="relative flex items-center">
+                <textarea id="textInput" rows="2" placeholder="Type text here or press microphone to speak..." class="w-full bg-slate-950/60 border border-white/10 rounded-xl p-3 pr-12 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all resize-none"></textarea>
+                <button id="sendBtn" class="absolute right-3 p-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md active:scale-95 flex items-center justify-center">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Voice Control Center -->
+            <div class="flex items-center justify-between pt-1 border-t border-white/5">
+                <div class="text-xs text-slate-400 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-indigo-400"></i>
+                    <span id="statusMessage">Tap microphone to start interpreting</span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button id="stopBtn" class="hidden px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-semibold text-xs transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-square text-xs"></i> Finish
                     </button>
-                </div>
-                
-                <button id="stopBtn" class="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-4 rounded-full font-bold shadow-lg shadow-red-900/50 hover:from-red-400 hover:to-rose-500 active:scale-95 hidden flex items-center gap-2 transform transition-all">
-                    <i class="fa-solid fa-check"></i> Finish
-                </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- Status Indicator / Toast Notification -->
-    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl border border-slate-700 opacity-0 translate-y-[-20px] z-50 flex items-center gap-3 pointer-events-none">
-        <i id="toastIcon" class="fa-solid fa-info-circle text-blue-400"></i>
-        <span id="toastMessage" class="font-medium text-sm"></span>
-    </div>
-
-    <!-- FIREBASE AUTHENTICATION SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInAnonymously, 
-            signInWithCustomToken, 
-            GoogleAuthProvider, 
-            signInWithPopup, 
-            signInWithRedirect, 
-            getRedirectResult, 
-            signOut, 
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // Developer & Administrator Whitelist
-        const ADMIN_EMAILS = [
-            'ronnywoods77@gmail.com',
-            'info@wstudio3d.com'
-        ];
-
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "AIzaSyA3tRv3GJcvoKvLRkDqh4n0HM_Wq666tGY",
-                authDomain: "ichat-d37e5.firebaseapp.com",
-                projectId: "ichat-d37e5",
-                storageBucket: "ichat-d37e5.firebasestorage.app",
-                messagingSenderId: "277683536356",
-                appId: "1:277683536356:web:3b82bbba6dac83b77ac7f1"
-            };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-
-        const landingPage = document.getElementById('landingPage');
-        const translatorApp = document.getElementById('translatorApp');
-        const loginBtnHero = document.getElementById('loginBtnHero');
-        const loginBtnTop = document.getElementById('loginBtnTop');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const userEmail = document.getElementById('userEmail');
-        const heroAuthSection = document.getElementById('heroAuthSection');
-        const paypalPayCard = document.getElementById('paypalPayCard');
-
-        let currentUser = null;
-
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                checkUserPaymentAndGrantAccess(result.user);
-            }
-        }).catch((err) => {
-            console.warn("Redirect error:", err);
-        });
-
-        async function handleGoogleLogin() {
-            showToast("Connecting with Google...", "sync");
-            
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                    return;
-                }
-
-                const result = await signInWithPopup(auth, provider);
-                if (result && result.user) {
-                    checkUserPaymentAndGrantAccess(result.user);
-                }
-            } catch (popupErr) {
-                console.error("Google Auth error:", popupErr);
-
-                let errorTitle = "Authentication Error";
-                let errorMsg = popupErr.message || "Failed to connect with Google.";
-
-                if (popupErr.code === 'auth/unauthorized-domain') {
-                    errorTitle = "Unauthorized Domain";
-                    errorMsg = "Add 'ichat.wstudio3d.com' in Firebase Console -> Auth -> Authorized Domains.";
-                } else if (popupErr.code === 'auth/invalid-api-key') {
-                    errorTitle = "Invalid API Key";
-                    errorMsg = "Replace the sample API key in index.html with your production Firebase keys.";
-                } else if (popupErr.code === 'auth/popup-blocked') {
-                    showToast("Popup blocked. Redirecting...", "sync");
-                    try {
-                        await signInWithRedirect(auth, provider);
-                        return;
-                    } catch (redErr) {
-                        console.error("Redirect Error:", redErr);
-                    }
-                } else if (popupErr.code === 'auth/popup-closed-by-user') {
-                    showToast("Login cancelled.", "warning");
-                    return;
-                }
-
-                showToast(`⚠️ ${errorTitle}: ${errorMsg}`, "error");
-
-                setTimeout(async () => {
-                    try {
-                        const anonRes = await signInAnonymously(auth);
-                        checkUserPaymentAndGrantAccess(anonRes.user);
-                    } catch (anonErr) {
-                        const localDemoUser = {
-                            uid: 'demo_user_wstudio3d',
-                            email: 'demo@ichat.wstudio3d.com',
-                            displayName: 'Demo User'
-                        };
-                        checkUserPaymentAndGrantAccess(localDemoUser);
-                    }
-                }, 2000);
-            }
-        }
-
-        loginBtnHero.addEventListener('click', handleGoogleLogin);
-        loginBtnTop.addEventListener('click', handleGoogleLogin);
-
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-            } catch (e) {
-                console.warn("Sign out note:", e);
-            }
-            if (currentUser) {
-                localStorage.removeItem(`ichat_paid_${currentUser.uid}`);
-            }
-            localStorage.removeItem('ichat_paid_user');
-            currentUser = null;
-            landingPage.classList.remove('hidden');
-            translatorApp.classList.add('hidden');
-            heroAuthSection.classList.remove('hidden');
-            paypalPayCard.classList.add('hidden');
-            showToast("Signed out successfully", "info");
-        });
-
-        async function checkUserPaymentAndGrantAccess(user) {
-            currentUser = user;
-            const paidLocally = localStorage.getItem(`ichat_paid_${user.uid}`);
-            
-            const isAdmin = user.email && ADMIN_EMAILS.some(email => email.toLowerCase() === user.email.toLowerCase());
-
-            if (paidLocally === 'true' || isAdmin) {
-                landingPage.classList.add('hidden');
-                translatorApp.classList.remove('hidden');
-                userEmail.textContent = (user.email || user.displayName || "Pro User") + (isAdmin ? " 👑 (Dev)" : "");
-                
-                if (isAdmin) {
-                    showToast("Developer Mode Activated! 👑", "success");
-                } else {
-                    showToast("Welcome to iChat Pro!", "success");
-                }
-            } else {
-                landingPage.classList.remove('hidden');
-                translatorApp.classList.add('hidden');
-                heroAuthSection.classList.add('hidden');
-                paypalPayCard.classList.remove('hidden');
-                
-                await loadPayPalSDKAndRender(user);
-            }
-        }
-
-        async function loadPayPalSDKAndRender(user) {
-            const container = document.getElementById('paypal-button-container');
-            container.innerHTML = '<div class="text-blue-400 text-sm animate-pulse flex items-center justify-center py-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Connecting to PayPal...</div>';
-            
-            try {
-                const res = await fetch('/api/paypal');
-                
-                if (!res.ok) {
-                    throw new Error(`Server error (${res.status}) connecting to /api/paypal`);
-                }
-                
-                const data = await res.json();
-                
-                if (!data.clientId) {
-                    container.innerHTML = `
-                        <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> <strong>Missing PAYPAL_CLIENT_ID:</strong> Set this variable in Vercel to process live payments.
-                        </div>
-                        <button id="devSkipPayBtn" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-green-900/30 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i> Try App / Skip Payment (Test Mode)
+                    <div id="micContainer" class="mic-pulse">
+                        <button id="recordBtn" class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/30 flex items-center justify-center text-lg transition-all active:scale-90 relative z-10">
+                            <i class="fa-solid fa-microphone"></i>
                         </button>
-                    `;
-                    document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
-                    return;
-                }
-
-                if (window.paypal) {
-                    renderPayPalButton(user);
-                    return;
-                }
-
-                const script = document.createElement('script');
-                script.src = `https://www.paypal.com/sdk/js?client-id=${data.clientId}&currency=USD`;
-                script.onload = () => renderPayPalButton(user);
-                script.onerror = () => {
-                     container.innerHTML = `
-                        <div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl text-red-300 text-xs mb-3 text-left">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Failed to load PayPal SDK. Please check Client ID.
-                        </div>
-                        <button id="devSkipPayBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-3 rounded-xl text-sm w-full transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i> Try App (Test Mode)
-                        </button>
-                     `;
-                     document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
-                };
-                document.head.appendChild(script);
-            } catch (err) {
-                console.error("PayPal SDK loading error:", err);
-                container.innerHTML = `
-                    <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
-                        <i class="fa-solid fa-info-circle text-amber-400 mr-1"></i> PayPal backend endpoint not found.
                     </div>
-                    <button id="devSkipPayBtn" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-rocket"></i> Launch Translator (Test Mode)
-                    </button>
-                `;
-                document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
-            }
-        }
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function grantAccess(user) {
-            localStorage.setItem(`ichat_paid_${user.uid}`, 'true');
-            landingPage.classList.add('hidden');
-            translatorApp.classList.remove('hidden');
-            userEmail.textContent = user.email || user.displayName || "Pro User";
-            showToast("Access granted (Test Mode)", "success");
-        }
+    <!-- Toast Notifications -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-800 border border-white/10 text-slate-200 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">Notification message</span>
+    </div>
 
-        function renderPayPalButton(user) {
-            const container = document.getElementById('paypal-button-container');
-            container.innerHTML = ''; 
-
-            if (window.paypal) {
-                paypal.Buttons({
-                    style: {
-                        shape: 'pill',
-                        color: 'gold',
-                        layout: 'vertical',
-                        label: 'pay'
-                    },
-                    createOrder: async function() {
-                        const res = await fetch('/api/paypal', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'create' })
-                        });
-                        const order = await res.json();
-                        if (!order.id) {
-                            showToast("Error creating PayPal order.", "error");
-                            throw new Error("No order ID returned");
-                        }
-                        return order.id;
-                    },
-                    onApprove: async function(data) {
-                        const res = await fetch('/api/paypal', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'capture', orderID: data.orderID })
-                        });
-                        const details = await res.json();
-                        
-                        if (details.status === 'COMPLETED') {
-                            showToast("Payment successful! Activating account...", "success");
-                            grantAccess(user);
-                        } else {
-                            showToast("Payment could not be processed.", "error");
-                        }
-                    },
-                    onError: function(err) {
-                        console.error("PayPal Error:", err);
-                        showToast("Error processing payment. Please try again.", "error");
-                    }
-                }).render('#paypal-button-container');
-            }
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                checkUserPaymentAndGrantAccess(user);
-            } else {
-                landingPage.classList.remove('hidden');
-                translatorApp.classList.add('hidden');
-                heroAuthSection.classList.remove('hidden');
-                paypalPayCard.classList.add('hidden');
-            }
-        });
-    </script>
-
-    <!-- MAIN TRANSLATOR JS & GOOGLE TRANSLATE SATURN PLANET INTEGRATION -->
+    <!-- JavaScript Application Logic -->
     <script>
-        // Supported Languages List
-        const languages = [
-            { code: 'en-US', gtCode: 'en', name: 'English (US)', flag: '🇺🇸' },
-            { code: 'en-GB', gtCode: 'en', name: 'English (UK)', flag: '🇬🇧' },
-            { code: 'es-MX', gtCode: 'es', name: 'Español (México)', flag: '🇲🇽' },
-            { code: 'es-ES', gtCode: 'es', name: 'Español (España)', flag: '🇪🇸' },
-            { code: 'es-AR', gtCode: 'es', name: 'Español (Argentina)', flag: '🇦🇷' },
-            { code: 'es-CO', gtCode: 'es', name: 'Español (Colombia)', flag: '🇨🇴' },
-            { code: 'fr-FR', gtCode: 'fr', name: 'Français (France)', flag: '🇫🇷' },
-            { code: 'fr-CA', gtCode: 'fr', name: 'Français (Canada)', flag: '🇨🇦' },
-            { code: 'pt-BR', gtCode: 'pt', name: 'Português (Brasil)', flag: '🇧🇷' },
-            { code: 'pt-PT', gtCode: 'pt', name: 'Português (Portugal)', flag: '🇵🇹' },
-            { code: 'de-DE', gtCode: 'de', name: 'Deutsch (German)', flag: '🇩🇪' },
-            { code: 'it-IT', gtCode: 'it', name: 'Italiano (Italian)', flag: '🇮🇹' },
-            { code: 'ja-JP', gtCode: 'ja', name: '日本語 (Japanese)', flag: '🇯🇵' },
-            { code: 'ko-KR', gtCode: 'ko', name: '한국어 (Korean)', flag: '🇰🇷' },
-            { code: 'zh-CN', gtCode: 'zh-CN', name: '中文 (Mandarin)', flag: '🇨🇳' },
-            { code: 'ru-RU', gtCode: 'ru', name: 'Русский (Russian)', flag: '🇷🇺' },
-            { code: 'ar-SA', gtCode: 'ar', name: 'العربية (Arabic)', flag: '🇸🇦' },
-            { code: 'hi-IN', gtCode: 'hi', name: 'हिन्दी (Hindi)', flag: '🇮🇳' }
+        // Saturn Menu Google Translate Language Options
+        const saturnLanguages = [
+            { code: 'en', name: 'English' },
+            { code: 'es', name: 'Español' },
+            { code: 'fr', name: 'Français' },
+            { code: 'de', name: 'Deutsch' },
+            { code: 'it', name: 'Italiano' },
+            { code: 'pt', name: 'Português' },
+            { code: 'zh-CN', name: '中文 (简体)' },
+            { code: 'ja', name: '日本語' }
         ];
 
-        /* Helper to get/set Google Translate cookie */
-        function setGoogleTranslateCookie(gtCode) {
-            const domain = window.location.hostname;
-            if (gtCode === 'en' || !gtCode) {
-                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                if (domain) {
-                    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain};`;
-                    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain};`;
-                }
-            } else {
-                const cookieVal = `/en/${gtCode}`;
-                document.cookie = `googtrans=${cookieVal}; path=/;`;
-                if (domain) {
-                    document.cookie = `googtrans=${cookieVal}; path=/; domain=${domain};`;
-                    document.cookie = `googtrans=${cookieVal}; path=/; domain=.${domain};`;
-                }
-            }
-        }
-
-        // GOOGLE TRANSLATION SCRIPT INITIALIZATION
-        function googleTranslateElementInit() {
-            if (window.google && window.google.translate) {
-                new window.google.translate.TranslateElement({
-                    pageLanguage: 'en',
-                    includedLanguages: 'en,es,fr,pt,de,it,ja,ko,zh-CN,ru,ar,hi',
-                    autoDisplay: false,
-                    layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
-                }, 'google_translate_element');
-            }
-        }
-
-        // Load Google Translate Script with HTTPS
-        (function loadGoogleTranslateScript() {
-            const s = document.createElement('script');
-            s.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-            s.async = true;
-            document.head.appendChild(s);
-        })();
-
-        // SILENTLY TRIGGER GOOGLE TRANSLATE WITHOUT POPUPS
-        let translateRetryCount = 0;
-        function triggerGoogleTranslate(targetGtCode) {
-            setGoogleTranslateCookie(targetGtCode);
-
-            const gtCombo = document.querySelector('.goog-te-combo');
-            if (gtCombo) {
-                gtCombo.value = targetGtCode;
-                gtCombo.dispatchEvent(new Event('change'));
-                updateSaturnButtonLabel(targetGtCode);
-                showToast(`Page translated to ${targetGtCode.toUpperCase()}`, "success");
-                translateRetryCount = 0;
-            } else if (translateRetryCount < 8) {
-                translateRetryCount++;
-                showToast("Initializing translator...", "sync");
-                setTimeout(() => triggerGoogleTranslate(targetGtCode), 500);
-            } else {
-                // Fallback: Reload page with updated googtrans cookie
-                showToast("Applying translation...", "sync");
-                location.reload();
-            }
-        }
-
-        function updateSaturnButtonLabel(gtCode) {
-            const saturnBtnText = document.getElementById('saturnBtnText');
-            if (!saturnBtnText) return;
-
-            if (!gtCode || gtCode === 'en') {
-                saturnBtnText.textContent = "Translate Web";
-            } else {
-                const langMatch = languages.find(l => l.gtCode === gtCode);
-                saturnBtnText.textContent = langMatch ? `${langMatch.flag} Web: ${gtCode.toUpperCase()}` : `Web: ${gtCode.toUpperCase()}`;
-            }
-        }
-
-        // SATURN PLANET DROPDOWN SETUP
-        const saturnBtn = document.getElementById('saturnBtn');
-        const saturnBtnApp = document.getElementById('saturnBtnApp');
-        const saturnDropdown = document.getElementById('saturnDropdown');
+        // Populate Saturn Language Menu
         const saturnLangList = document.getElementById('saturnLangList');
-        const btnResetLang = document.getElementById('btnResetLang');
-
-        function populateSaturnMenu() {
-            if (!saturnLangList) return;
-            saturnLangList.innerHTML = '';
-
-            // Group unique target codes
-            const uniqueLangs = [];
-            const seenCodes = new Set();
-
-            languages.forEach(lang => {
-                if (!seenCodes.has(lang.gtCode)) {
-                    seenCodes.add(lang.gtCode);
-                    uniqueLangs.push(lang);
-                }
-            });
-
-            uniqueLangs.forEach(lang => {
-                const item = document.createElement('button');
-                item.className = "w-full text-left px-3 py-2 rounded-xl hover:bg-purple-900/40 hover:text-purple-300 transition flex items-center justify-between";
-                item.innerHTML = `<span class="flex items-center gap-2"><span>${lang.flag}</span> <span class="font-medium">${lang.name}</span></span> <i class="fa-solid fa-angle-right text-[10px] opacity-40"></i>`;
-                item.onclick = (e) => {
-                    e.stopPropagation();
-                    saturnDropdown.classList.add('hidden');
-                    triggerGoogleTranslate(lang.gtCode);
-                };
-                saturnLangList.appendChild(item);
+        if (saturnLangList) {
+            saturnLanguages.forEach(lang => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left px-3 py-1.5 rounded-lg hover:bg-purple-600/20 hover:text-purple-200 transition flex items-center justify-between';
+                btn.innerHTML = `<span>${lang.name}</span><span class="text-[10px] text-slate-500 uppercase">${lang.code}</span>`;
+                btn.onclick = () => changeGoogleLanguage(lang.code);
+                saturnLangList.appendChild(btn);
             });
         }
 
-        if (btnResetLang) {
-            btnResetLang.addEventListener('click', (e) => {
-                e.stopPropagation();
-                saturnDropdown.classList.add('hidden');
-                triggerGoogleTranslate('en');
-            });
-        }
-
-        if (saturnBtn) {
+        // Saturn Dropdown Toggle
+        const saturnBtn = document.getElementById('saturnBtn');
+        const saturnDropdown = document.getElementById('saturnDropdown');
+        if (saturnBtn && saturnDropdown) {
             saturnBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 saturnDropdown.classList.toggle('hidden');
             });
+            document.addEventListener('click', () => saturnDropdown.classList.add('hidden'));
         }
 
-        if (saturnBtnApp) {
-            saturnBtnApp.addEventListener('click', (e) => {
-                e.stopPropagation();
-                saturnDropdown.classList.toggle('hidden');
-            });
-        }
-
-        document.addEventListener('click', () => {
-            if (saturnDropdown && !saturnDropdown.classList.contains('hidden')) {
-                saturnDropdown.classList.add('hidden');
+        function changeGoogleLanguage(langCode) {
+            const select = document.querySelector('.goog-te-combo');
+            if (select) {
+                select.value = langCode;
+                select.dispatchEvent(new Event('change'));
+                showToast(`Language switched`, 'info');
+            } else {
+                showToast("Translation engine loading...", "warning");
             }
-        });
-
-        populateSaturnMenu();
-
-        // INTERACTIVE DEMO LOGIC WITH OPENAI INTEGRATION
-        const demoLangFrom = document.getElementById('demoLangFrom');
-        const demoLangTo = document.getElementById('demoLangTo');
-        const demoInputText = document.getElementById('demoInputText');
-        const demoPhoneticFrom = document.getElementById('demoPhoneticFrom');
-        const demoTextTo = document.getElementById('demoTextTo');
-        const demoPhoneticTo = document.getElementById('demoPhoneticTo');
-        const demoStatusText = document.getElementById('demoStatusText');
-        const btnPlayDemoFrom = document.getElementById('btnPlayDemoFrom');
-        const btnPlayDemoTo = document.getElementById('btnPlayDemoTo');
-        const btnTranslateDemo = document.getElementById('btnTranslateDemo');
-
-        let demoAudioContent = null;
-
-        const samplePhrases = {
-            'en-US': 'Hello! How are you doing today?',
-            'en-GB': 'Hello! How are you doing today?',
-            'es-MX': '¡Hola! ¿Cómo estás hoy?',
-            'es-ES': '¡Hola! ¿Cómo estás?',
-            'es-AR': '¡Hola! ¿Cómo estás hoy?',
-            'es-CO': '¡Hola! ¿Cómo estás hoy?',
-            'fr-FR': "Bonjour! Comment allez-vous aujourd'hui?",
-            'fr-CA': "Bonjour! Comment ça va?",
-            'pt-BR': 'Olá! Como vai você hoje?',
-            'pt-PT': 'Olá! Como está hoje?',
-            'de-DE': 'Hallo! Wie geht es dir heute?',
-            'it-IT': 'Ciao! Come stai oggi?',
-            'ja-JP': 'こんにちは！お元気ですか？',
-            'ko-KR': '안녕하세요! 오늘 어떻게 지내세요?',
-            'zh-CN': '你好！你 today 怎么样？',
-            'ru-RU': 'Привет! Как ваши дела сегодня?',
-            'ar-SA': 'مرحبا! كيف حالك اليوم؟',
-            'hi-IN': 'नमस्ते! आज आप कैसे हैं?'
-        };
-
-        function populateDemoLanguages() {
-            if (!demoLangFrom || !demoLangTo) return;
-            demoLangFrom.innerHTML = '';
-            demoLangTo.innerHTML = '';
-
-            languages.forEach(lang => {
-                const optFrom = document.createElement('option');
-                optFrom.value = lang.code;
-                optFrom.textContent = `${lang.flag} ${lang.name}`;
-                demoLangFrom.appendChild(optFrom);
-
-                const optTo = document.createElement('option');
-                optTo.value = lang.code;
-                optTo.textContent = `${lang.flag} ${lang.name}`;
-                demoLangTo.appendChild(optTo);
-            });
-
-            demoLangFrom.value = 'en-US';
-            demoLangTo.value = 'es-MX';
         }
 
-        async function runOpenAIDemoTranslation() {
-            if (!demoInputText) return;
-            const text = demoInputText.value.trim();
-            const fromLang = demoLangFrom.value;
-            const toLang = demoLangTo.value;
+        document.getElementById('btnResetLang')?.addEventListener('click', () => changeGoogleLanguage('es'));
+
+        // Google Auth Simulation and Paypal Show
+        const loginBtnTop = document.getElementById('loginBtnTop');
+        const loginBtnHero = document.getElementById('loginBtnHero');
+        const heroAuthSection = document.getElementById('heroAuthSection');
+        const paypalPayCard = document.getElementById('paypalPayCard');
+
+        function triggerGoogleAuth() {
+            showToast("Signing in with Google...", "sync");
+            setTimeout(() => {
+                heroAuthSection.classList.add('hidden');
+                paypalPayCard.classList.remove('hidden');
+                showToast("Signed in! Please complete checkout.", "info");
+
+                // Render Paypal Buttons
+                if (window.paypal && document.getElementById('paypal-button-container').innerHTML === "") {
+                    window.paypal.Buttons({
+                        createOrder: (data, actions) => {
+                            return actions.order.create({
+                                purchase_units: [{ amount: { value: '14.00' } }]
+                            });
+                        },
+                        onApprove: (data, actions) => {
+                            return actions.order.capture().then(details => {
+                                showToast("Payment successful! Access granted.", "info");
+                                document.getElementById('landingPage').classList.add('hidden');
+                                document.getElementById('chatApp').classList.remove('hidden');
+                            });
+                        }
+                    }).render('#paypal-button-container');
+                }
+            }, 1000);
+        }
+
+        loginBtnTop?.addEventListener('click', triggerGoogleAuth);
+        loginBtnHero?.addEventListener('click', triggerGoogleAuth);
+
+        // Demo interactive logic
+        const btnRunDemo = document.getElementById('btnRunDemo');
+        const demoResultBox = document.getElementById('demoResultBox');
+        const demoTranslatedText = document.getElementById('demoTranslatedText');
+        const btnPlayDemoAudio = document.getElementById('btnPlayDemoAudio');
+        let currentDemoAudio = null;
+
+        btnRunDemo?.addEventListener('click', async () => {
+            const text = document.getElementById('demoInputText').value.trim();
+            const fromLang = document.getElementById('demoLangFrom').value;
+            const toLang = document.getElementById('demoLangTo').value;
 
             if (!text) return;
-
-            demoStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-purple-400"></i> Connecting to OpenAI...';
-            demoTextTo.textContent = 'Translating...';
-            demoAudioContent = null;
-
-            const fromObj = languages.find(l => l.code === fromLang);
-            const toObj = languages.find(l => l.code === toLang);
-
-            demoPhoneticFrom.textContent = fromObj ? `${fromObj.flag} ${fromObj.name}` : fromLang;
-            demoPhoneticTo.textContent = toObj ? `${toObj.flag} ${toObj.name}` : toLang;
+            btnRunDemo.disabled = true;
+            btnRunDemo.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Translating...';
 
             try {
                 const response = await fetch('/api/translate', {
@@ -1220,202 +579,97 @@
                 });
 
                 const data = await response.json();
-
-                if (response.ok && data.translatedText) {
-                    demoTextTo.textContent = data.translatedText;
-                    demoAudioContent = data.audioContent;
-                    demoStatusText.innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i> OpenAI Translation & HD Voice Ready!';
-                } else {
-                    throw new Error(data.error || 'OpenAI backend API offline');
+                if (data.translatedText) {
+                    demoResultBox.classList.remove('hidden');
+                    demoTranslatedText.textContent = data.translatedText;
+                    currentDemoAudio = data.audioContent;
                 }
-            } catch (err) {
-                console.warn("OpenAI Demo API error fallback:", err);
-                demoStatusText.innerHTML = '<i class="fa-solid fa-circle-info text-blue-400"></i> Demo Speech Engine Active';
-                const fallbackText = samplePhrases[toLang] || `[Traducción] ${text}`;
-                demoTextTo.textContent = fallbackText;
+            } catch (e) {
+                console.error(e);
+                showToast("Demo translation error", "error");
+            } finally {
+                btnRunDemo.disabled = false;
+                btnRunDemo.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Translate Demo';
             }
-        }
+        });
 
-        function speakDemoText(text, lang, audioContent = null) {
-            if (audioContent) {
-                try {
-                    const audio = new Audio(audioContent);
-                    audio.play().catch(e => {
-                        console.warn("Audio play error, falling back to Web Speech", e);
-                        speakTextFallback(text, lang);
-                    });
-                    return;
-                } catch (e) {}
-            }
-            speakTextFallback(text, lang);
-        }
+        btnPlayDemoAudio?.addEventListener('click', () => {
+            if (currentDemoAudio) playAudio(currentDemoAudio);
+        });
 
-        function speakTextFallback(text, lang) {
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = lang;
-            utterance.rate = 0.9;
-            window.speechSynthesis.speak(utterance);
-        }
-
-        if (demoLangFrom && demoLangTo) {
-            populateDemoLanguages();
-
-            demoLangFrom.addEventListener('change', () => {
-                const selectedFrom = demoLangFrom.value;
-                if (samplePhrases[selectedFrom]) {
-                    demoInputText.value = samplePhrases[selectedFrom];
-                }
-                runOpenAIDemoTranslation();
-            });
-
-            demoLangTo.addEventListener('change', () => {
-                runOpenAIDemoTranslation();
-            });
-
-            if (btnTranslateDemo) {
-                btnTranslateDemo.addEventListener('click', runOpenAIDemoTranslation);
-            }
-
-            if (btnPlayDemoFrom) {
-                btnPlayDemoFrom.addEventListener('click', () => {
-                    speakDemoText(demoInputText.value, demoLangFrom.value);
-                });
-            }
-
-            if (btnPlayDemoTo) {
-                btnPlayDemoTo.addEventListener('click', () => {
-                    speakDemoText(demoTextTo.textContent, demoLangTo.value, demoAudioContent);
-                });
-            }
-
-            // Initial demo run on load
-            setTimeout(runOpenAIDemoTranslation, 500);
-        }
-
-        // MAIN TRANSLATION APP LOGIC
-        const langFromEl = document.getElementById('langFrom');
-        const langToEl = document.getElementById('langTo');
-        const swapBtn = document.getElementById('swapLangs');
-        const recordBtn = document.getElementById('recordBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const micContainer = document.getElementById('micContainer');
-        const chatArea = document.getElementById('chatArea');
-        const toastEl = document.getElementById('toast');
-        const toastMessageEl = document.getElementById('toastMessage');
-        const toastIconEl = document.getElementById('toastIcon');
-        const livePreviewContainer = document.getElementById('livePreviewContainer');
-        const livePreviewText = document.getElementById('livePreviewText');
-        const welcomeMessage = document.getElementById('welcomeMessage');
-
+        // Speech Recognition Setup for Main App
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
         let isRecording = false;
         let recordedChunks = [];
         let restartTimeout = null;
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = null;
-        
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            recognition.continuous = false; 
+            recognition.continuous = true;
             recognition.interimResults = true;
         }
 
-        function initApp() {
-            languages.forEach(lang => {
-                const optionFrom = document.createElement('option');
-                optionFrom.value = lang.code;
-                optionFrom.textContent = lang.name;
-                langFromEl.appendChild(optionFrom);
+        const langFromEl = document.getElementById('langFrom');
+        const langToEl = document.getElementById('langTo');
+        const swapLangsBtn = document.getElementById('swapLangsBtn');
+        const textInput = document.getElementById('textInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const micContainer = document.getElementById('micContainer');
+        const chatFeed = document.getElementById('chatFeed');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const livePreviewContainer = document.getElementById('livePreviewContainer');
+        const livePreviewText = document.getElementById('livePreviewText');
+        const statusMessage = document.getElementById('statusMessage');
 
-                const optionTo = document.createElement('option');
-                optionTo.value = lang.code;
-                optionTo.textContent = lang.name;
-                langToEl.appendChild(optionTo);
-            });
+        swapLangsBtn?.addEventListener('click', () => {
+            const temp = langFromEl.value;
+            langFromEl.value = langToEl.value;
+            langToEl.value = temp;
+            showToast("Languages swapped!", "info");
+        });
 
-            langFromEl.value = 'en-US';
-            langToEl.value = 'es-MX';
-
-            swapBtn.addEventListener('click', () => {
-                const temp = langFromEl.value;
-                langFromEl.value = langToEl.value;
-                langToEl.value = temp;
-            });
-
-            recordBtn.addEventListener('click', toggleRecording);
-            stopBtn.addEventListener('click', stopRecordingManually);
-        }
-
-        function toggleRecording() {
-            if (!recognition) return;
-
-            if (isRecording) {
-                stopRecordingManually();
-                return;
+        function cleanDuplicateText(text) {
+            if (!text) return '';
+            const words = text.trim().split(/\s+/);
+            const cleanWords = [];
+            for (let i = 0; i < words.length; i++) {
+                if (i === 0 || words[i].toLowerCase() !== words[i - 1].toLowerCase()) {
+                    cleanWords.push(words[i]);
+                }
             }
-
-            recordedChunks = [];
-            recognition.lang = langFromEl.value;
-            isRecording = true;
-
-            updateUIForRecording(true);
-            showToast("Listening...", "info");
-
-            try {
-                recognition.start();
-            } catch (e) {
-                console.error("Error starting recognition:", e);
-            }
-        }
-
-        function stopRecordingManually() {
-            if (!isRecording) return;
-
-            isRecording = false;
-            clearTimeout(restartTimeout);
-            updateUIForRecording(false);
-
-            try {
-                recognition.stop();
-            } catch (e) {}
-
-            showToast("Processing translation...", "sync");
-
-            const rawCombined = recordedChunks.join(' ');
-            const cleanText = cleanDuplicateText(rawCombined);
-
-            if (cleanText.length > 0) {
-                processTranslation(cleanText);
-            } else {
-                showToast("No clear speech detected. Please try again.", "warning");
-            }
+            return cleanWords.join(' ');
         }
 
         function updateUIForRecording(recording) {
             if (recording) {
                 micContainer.classList.add('recording');
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+                recordBtn.classList.remove('from-indigo-600', 'to-violet-600');
+                recordBtn.classList.add('from-red-600', 'to-rose-600');
                 stopBtn.classList.remove('hidden');
                 livePreviewContainer.classList.remove('hidden');
                 livePreviewText.textContent = "Listening...";
+                statusMessage.textContent = "Recording voice... Tap Finish when done.";
                 if (welcomeMessage) welcomeMessage.classList.add('hidden');
             } else {
                 micContainer.classList.remove('recording');
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-                stopBtn.add('hidden');
+                recordBtn.classList.remove('from-red-600', 'to-rose-600');
+                recordBtn.classList.add('from-indigo-600', 'to-violet-600');
+                stopBtn.classList.add('hidden');
                 livePreviewContainer.classList.add('hidden');
+                statusMessage.textContent = "Tap microphone to start interpreting";
             }
         }
 
         if (recognition) {
             recognition.onresult = (event) => {
                 let currentInterim = '';
-
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     const transcriptStr = event.results[i][0].transcript.trim();
-
                     if (event.results[i].isFinal) {
                         if (transcriptStr.length > 0) {
                             const lastChunk = recordedChunks[recordedChunks.length - 1];
@@ -1427,7 +681,6 @@
                         currentInterim += transcriptStr + ' ';
                     }
                 }
-
                 const liveCombined = recordedChunks.join(' ') + ' ' + currentInterim;
                 livePreviewText.textContent = cleanDuplicateText(liveCombined) || "Listening...";
             };
@@ -1439,141 +692,149 @@
                         if (isRecording) {
                             try { recognition.start(); } catch (e) {}
                         }
-                    }, 50);
+                    }, 100);
                 }
             };
         }
 
-        function cleanDuplicateText(text) {
-            if (!text) return '';
-            let normalized = text.replace(/\s+/g, ' ').trim();
-            if (!normalized) return '';
-
-            const words = normalized.split(' ');
-            const dedupWords = [];
-
-            for (let i = 0; i < words.length; i++) {
-                const current = words[i];
-                const prev = dedupWords[dedupWords.length - 1];
-
-                const normCurrent = current.toLowerCase().replace(/[.,?!]/g, '');
-                const normPrev = prev ? prev.toLowerCase().replace(/[.,?!]/g, '') : null;
-
-                if (!normPrev || normCurrent !== normPrev) {
-                    dedupWords.push(current);
-                }
+        function toggleRecording() {
+            if (!recognition) {
+                showToast("Speech recognition not supported", "error");
+                return;
             }
-
-            return dedupWords.join(' ');
+            if (isRecording) {
+                stopRecordingManually();
+                return;
+            }
+            recordedChunks = [];
+            recognition.lang = langFromEl.value;
+            isRecording = true;
+            updateUIForRecording(true);
+            try { recognition.start(); } catch (e) {}
         }
 
-        async function processTranslation(text) {
-            const fromLang = langFromEl.value;
-            const toLang = langToEl.value;
+        function stopRecordingManually() {
+            clearTimeout(restartTimeout);
+            isRecording = false;
+            updateUIForRecording(false);
 
-            addChatBubble(text, 'source', fromLang);
+            if (recognition) {
+                try {
+                    recognition.stop();
+                    recognition.abort();
+                } catch (e) {}
+            }
+
+            const cleanText = cleanDuplicateText(recordedChunks.join(' '));
+            if (cleanText.length > 0) {
+                processTranslation(cleanText);
+            } else {
+                showToast("No clear speech detected", "warning");
+            }
+        }
+
+        recordBtn?.addEventListener('click', toggleRecording);
+        stopBtn?.addEventListener('click', stopRecordingManually);
+
+        sendBtn?.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            if (text) {
+                processTranslation(text);
+                textInput.value = '';
+            }
+        });
+
+        async function processTranslation(text) {
+            if (welcomeMessage) welcomeMessage.classList.add('hidden');
+
+            const messageId = 'msg-' + Date.now();
+            appendLoadingCard(messageId, text);
 
             try {
                 const response = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, fromLang, toLang })
+                    body: JSON.stringify({ text, fromLang: langFromEl.value, toLang: langToEl.value })
                 });
-
                 const data = await response.json();
 
                 if (response.ok && data.translatedText) {
-                    const translatedText = data.translatedText;
-                    showToast("Translated successfully!", "success");
-
-                    addChatBubble(translatedText, 'translated', toLang, data.audioContent);
-                    speakText(translatedText, toLang, data.audioContent);
+                    updateCardWithResult(messageId, data.translatedText, data.audioContent);
+                    if (data.audioContent) playAudio(data.audioContent);
                 } else {
-                    showToast("Translation error", "error");
-                    addChatBubble(`⚠️ Error: ${data.error || 'API failure'}`, 'translated', toLang);
+                    updateCardWithError(messageId, data.error || 'Translation failed');
                 }
             } catch (error) {
-                console.error("Translation request error:", error);
-                showToast("Connection error.", "error");
+                updateCardWithError(messageId, "Server error");
             }
         }
 
-        function speakText(text, lang, audioContent = null) {
-            if (audioContent) {
-                try {
-                    const audio = new Audio(audioContent);
-                    audio.play().catch(e => console.error(e));
-                    return;
-                } catch (e) {}
+        function appendLoadingCard(id, originalText) {
+            const cardHtml = `
+                <div id="${id}" class="p-4 rounded-2xl border border-white/10 shadow-lg space-y-3 bg-slate-800/50 animate-pulse">
+                    <p class="text-sm text-slate-200 font-medium">${escapeHtml(originalText)}</p>
+                    <div class="text-xs text-indigo-400 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-notch animate-spin"></i> Translating...
+                    </div>
+                </div>
+            `;
+            chatFeed.insertAdjacentHTML('beforeend', cardHtml);
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+        }
+
+        function updateCardWithResult(id, translatedText, audioContent) {
+            const card = document.getElementById(id);
+            if (!card) return;
+            card.classList.remove('animate-pulse');
+
+            let audioBtn = audioContent ? `
+                <button onclick="playAudio('${audioContent}')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-volume-high"></i> Listen
+                </button>
+            ` : '';
+
+            card.innerHTML = `
+                <p class="text-sm text-slate-300">${escapeHtml(card.querySelector('p')?.textContent || '')}</p>
+                <div class="border-t border-white/10 pt-3 mt-2 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase text-emerald-400">Translation</span>
+                        ${audioBtn}
+                    </div>
+                    <p class="text-base text-white font-semibold">${escapeHtml(translatedText)}</p>
+                </div>
+            `;
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+        }
+
+        function updateCardWithError(id, errorMessage) {
+            const card = document.getElementById(id);
+            if (!card) return;
+            card.classList.remove('animate-pulse');
+            card.innerHTML = `<div class="text-xs text-red-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${escapeHtml(errorMessage)}</div>`;
+        }
+
+        function playAudio(audioUri) {
+            try {
+                const audio = new Audio(audioUri);
+                audio.play();
+            } catch (e) {
+                console.error("Audio error:", e);
             }
-
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = lang;
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
         }
 
-        function addChatBubble(text, type, langCode, audioContent = null) {
-            const wrapper = document.createElement('div');
-            wrapper.className = `flex w-full ${type === 'source' ? 'justify-end' : 'justify-start'}`;
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            if (!toast || !toastMsg) return;
 
-            const bubble = document.createElement('div');
-            bubble.className = `p-4 rounded-2xl shadow-md chat-bubble ${type === 'source' ? 'chat-bubble-source text-white rounded-br-sm' : 'chat-bubble-translated text-white rounded-bl-sm'}`;
-
-            const langLabel = document.createElement('div');
-            langLabel.className = `text-[10px] uppercase font-bold tracking-wider mb-1 ${type === 'source' ? 'text-blue-200' : 'text-purple-200'}`;
-            langLabel.textContent = languages.find(l => l.code === langCode)?.name || langCode;
-
-            const textEl = document.createElement('p');
-            textEl.className = "text-base leading-relaxed";
-            textEl.textContent = text;
-
-            bubble.appendChild(langLabel);
-            bubble.appendChild(textEl);
-
-            if (type === 'translated') {
-                const playBtn = document.createElement('button');
-                playBtn.className = "mt-2 text-xs text-purple-200 hover:text-white transition flex items-center gap-1 active:scale-95";
-                playBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Listen to AI Voice';
-                playBtn.onclick = () => speakText(text, langCode, audioContent);
-                bubble.appendChild(playBtn);
-            }
-
-            wrapper.appendChild(bubble);
-            chatArea.appendChild(wrapper);
-
-            chatArea.scrollTo({
-                top: chatArea.scrollHeight,
-                behavior: 'smooth'
-            });
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
-        let toastTimeout;
-        function showToast(message, type) {
-            clearTimeout(toastTimeout);
-
-            toastMessageEl.textContent = message;
-            toastIconEl.className = "fa-solid ";
-
-            if (type === 'error') toastIconEl.className += "fa-circle-exclamation text-red-400";
-            else if (type === 'success') toastIconEl.className += "fa-circle-check text-green-400";
-            else if (type === 'warning') toastIconEl.className += "fa-triangle-exclamation text-yellow-400";
-            else if (type === 'sync') toastIconEl.className += "fa-rotate text-blue-400 animate-spin";
-            else toastIconEl.className += "fa-circle-info text-blue-400";
-
-            toastEl.classList.remove('opacity-0', 'translate-y-[-20px]');
-            toastEl.classList.add('opacity-100', 'translate-y-0');
-
-            toastTimeout = setTimeout(() => {
-                toastEl.classList.remove('opacity-100', 'translate-y-0');
-                toastEl.classList.add('opacity-0', 'translate-y-[-20px]');
-            }, 3000);
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m]));
         }
-
-        initApp();
     </script>
 </body>
 </html>
