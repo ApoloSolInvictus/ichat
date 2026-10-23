@@ -1409,7 +1409,29 @@
             }
         }
 
-                   // FIX: Cancelar cualquier reinicio diferido si la grabación ya se detuvo
+        if (recognition) {
+            recognition.onresult = (event) => {
+                let currentInterim = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcriptStr = event.results[i][0].transcript.trim();
+
+                    if (event.results[i].isFinal) {
+                        if (transcriptStr.length > 0) {
+                            const lastChunk = recordedChunks[recordedChunks.length - 1];
+                            if (!lastChunk || lastChunk.toLowerCase() !== transcriptStr.toLowerCase()) {
+                                recordedChunks.push(transcriptStr);
+                            }
+                        }
+                    } else {
+                        currentInterim += transcriptStr + ' ';
+                    }
+                }
+
+                const liveCombined = recordedChunks.join(' ') + ' ' + currentInterim;
+                livePreviewText.textContent = cleanDuplicateText(liveCombined) || "Listening...";
+            };
+
             recognition.onend = () => {
                 if (isRecording) {
                     clearTimeout(restartTimeout);
@@ -1417,164 +1439,141 @@
                         if (isRecording) {
                             try { recognition.start(); } catch (e) {}
                         }
-                    }, 100);
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.warn('Speech recognition event info:', event.error);
-                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                    clearTimeout(restartTimeout);
-                    isRecording = false;
-                    updateUIForRecording(false);
-                    showToast("Microphone permission denied or unavailable", "error");
+                    }, 50);
                 }
             };
         }
 
-        function toggleRecording() {
-            if (!recognition) {
-                showToast("Speech recognition not supported in this browser", "error");
-                return;
+        function cleanDuplicateText(text) {
+            if (!text) return '';
+            let normalized = text.replace(/\s+/g, ' ').trim();
+            if (!normalized) return '';
+
+            const words = normalized.split(' ');
+            const dedupWords = [];
+
+            for (let i = 0; i < words.length; i++) {
+                const current = words[i];
+                const prev = dedupWords[dedupWords.length - 1];
+
+                const normCurrent = current.toLowerCase().replace(/[.,?!]/g, '');
+                const normPrev = prev ? prev.toLowerCase().replace(/[.,?!]/g, '') : null;
+
+                if (!normPrev || normCurrent !== normPrev) {
+                    dedupWords.push(current);
+                }
             }
-            if (isRecording) {
-                stopRecordingManually();
-                return;
-            }
-            recordedChunks = [];
-            recognition.lang = langFromEl.value;
-            isRecording = true;
-            updateUIForRecording(true);
-            try { 
-                recognition.start(); 
-            } catch (e) {
-                console.warn('Recognition start error:', e);
-            }
+
+            return dedupWords.join(' ');
         }
-
-        // FIX PRINCIPAL: Apagado inmediato, limpieza de temporizadores y detención del hardware
-        function stopRecordingManually() {
-            clearTimeout(restartTimeout);
-            isRecording = false;
-            updateUIForRecording(false);
-
-            if (recognition) {
-                try {
-                    recognition.stop();
-                    recognition.abort(); // Fuerza el apagado inmediato del hardware del micrófono
-                } catch (e) {}
-            }
-
-            const cleanText = cleanDuplicateText(recordedChunks.join(' '));
-            if (cleanText.length > 0) {
-                processTranslation(cleanText);
-            } else {
-                showToast("No clear speech detected", "warning");
-            }
-        }
-
-        recordBtn?.addEventListener('click', toggleRecording);
-        stopBtn?.addEventListener('click', stopRecordingManually);
-
-        sendBtn?.addEventListener('click', () => {
-            const text = textInput.value.trim();
-            if (text) {
-                processTranslation(text);
-                textInput.value = '';
-            }
-        });
 
         async function processTranslation(text) {
-            if (welcomeMessage) welcomeMessage.classList.add('hidden');
+            const fromLang = langFromEl.value;
+            const toLang = langToEl.value;
 
-            const messageId = 'msg-' + Date.now();
-            appendLoadingCard(messageId, text);
+            addChatBubble(text, 'source', fromLang);
 
             try {
                 const response = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, fromLang: langFromEl.value, toLang: langToEl.value })
+                    body: JSON.stringify({ text, fromLang, toLang })
                 });
+
                 const data = await response.json();
 
                 if (response.ok && data.translatedText) {
-                    updateCardWithResult(messageId, data.translatedText, data.audioContent);
-                    if (data.audioContent) playAudio(data.audioContent);
+                    const translatedText = data.translatedText;
+                    showToast("Translated successfully!", "success");
+
+                    addChatBubble(translatedText, 'translated', toLang, data.audioContent);
+                    speakText(translatedText, toLang, data.audioContent);
                 } else {
-                    updateCardWithError(messageId, data.error || 'Translation failed');
+                    showToast("Translation error", "error");
+                    addChatBubble(`⚠️ Error: ${data.error || 'API failure'}`, 'translated', toLang);
                 }
             } catch (error) {
-                updateCardWithError(messageId, "Server error");
+                console.error("Translation request error:", error);
+                showToast("Connection error.", "error");
             }
         }
 
-        function appendLoadingCard(id, originalText) {
-            const cardHtml = `
-                <div id="${id}" class="p-4 rounded-2xl border border-white/10 shadow-lg space-y-3 bg-slate-800/50 animate-pulse">
-                    <p class="text-sm text-slate-200 font-medium">${escapeHtml(originalText)}</p>
-                    <div class="text-xs text-indigo-400 flex items-center gap-2">
-                        <i class="fa-solid fa-circle-notch animate-spin"></i> Translating...
-                    </div>
-                </div>
-            `;
-            chatFeed.insertAdjacentHTML('beforeend', cardHtml);
-            chatFeed.scrollTop = chatFeed.scrollHeight;
-        }
-
-        function updateCardWithResult(id, translatedText, audioContent) {
-            const card = document.getElementById(id);
-            if (!card) return;
-            card.classList.remove('animate-pulse');
-
-            let audioBtn = audioContent ? `
-                <button onclick="playAudio('${audioContent}')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 shadow">
-                    <i class="fa-solid fa-volume-high"></i> Listen
-                </button>
-            ` : '';
-
-            card.innerHTML = `
-                <p class="text-sm text-slate-300">${escapeHtml(card.querySelector('p')?.textContent || '')}</p>
-                <div class="border-t border-white/10 pt-3 mt-2 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold uppercase text-emerald-400">Translation</span>
-                        ${audioBtn}
-                    </div>
-                    <p class="text-base text-white font-semibold">${escapeHtml(translatedText)}</p>
-                </div>
-            `;
-            chatFeed.scrollTop = chatFeed.scrollHeight;
-        }
-
-        function updateCardWithError(id, errorMessage) {
-            const card = document.getElementById(id);
-            if (!card) return;
-            card.classList.remove('animate-pulse');
-            card.innerHTML = `<div class="text-xs text-red-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${escapeHtml(errorMessage)}</div>`;
-        }
-
-        function playAudio(audioUri) {
-            try {
-                const audio = new Audio(audioUri);
-                audio.play();
-            } catch (e) {
-                console.error("Audio error:", e);
+        function speakText(text, lang, audioContent = null) {
+            if (audioContent) {
+                try {
+                    const audio = new Audio(audioContent);
+                    audio.play().catch(e => console.error(e));
+                    return;
+                } catch (e) {}
             }
+
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
         }
 
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            if (!toast || !toastMsg) return;
+        function addChatBubble(text, type, langCode, audioContent = null) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex w-full ${type === 'source' ? 'justify-end' : 'justify-start'}`;
 
-            toastMsg.textContent = message;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+            const bubble = document.createElement('div');
+            bubble.className = `p-4 rounded-2xl shadow-md chat-bubble ${type === 'source' ? 'chat-bubble-source text-white rounded-br-sm' : 'chat-bubble-translated text-white rounded-bl-sm'}`;
+
+            const langLabel = document.createElement('div');
+            langLabel.className = `text-[10px] uppercase font-bold tracking-wider mb-1 ${type === 'source' ? 'text-blue-200' : 'text-purple-200'}`;
+            langLabel.textContent = languages.find(l => l.code === langCode)?.name || langCode;
+
+            const textEl = document.createElement('p');
+            textEl.className = "text-base leading-relaxed";
+            textEl.textContent = text;
+
+            bubble.appendChild(langLabel);
+            bubble.appendChild(textEl);
+
+            if (type === 'translated') {
+                const playBtn = document.createElement('button');
+                playBtn.className = "mt-2 text-xs text-purple-200 hover:text-white transition flex items-center gap-1 active:scale-95";
+                playBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Listen to AI Voice';
+                playBtn.onclick = () => speakText(text, langCode, audioContent);
+                bubble.appendChild(playBtn);
+            }
+
+            wrapper.appendChild(bubble);
+            chatArea.appendChild(wrapper);
+
+            chatArea.scrollTo({
+                top: chatArea.scrollHeight,
+                behavior: 'smooth'
+            });
         }
 
-        function escapeHtml(str) {
-            return str.replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m]));
+        let toastTimeout;
+        function showToast(message, type) {
+            clearTimeout(toastTimeout);
+
+            toastMessageEl.textContent = message;
+            toastIconEl.className = "fa-solid ";
+
+            if (type === 'error') toastIconEl.className += "fa-circle-exclamation text-red-400";
+            else if (type === 'success') toastIconEl.className += "fa-circle-check text-green-400";
+            else if (type === 'warning') toastIconEl.className += "fa-triangle-exclamation text-yellow-400";
+            else if (type === 'sync') toastIconEl.className += "fa-rotate text-blue-400 animate-spin";
+            else toastIconEl.className += "fa-circle-info text-blue-400";
+
+            toastEl.classList.remove('opacity-0', 'translate-y-[-20px]');
+            toastEl.classList.add('opacity-100', 'translate-y-0');
+
+            toastTimeout = setTimeout(() => {
+                toastEl.classList.remove('opacity-100', 'translate-y-0');
+                toastEl.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 3000);
         }
+
+        initApp();
     </script>
 </body>
 </html>
