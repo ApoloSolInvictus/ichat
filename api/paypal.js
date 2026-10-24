@@ -4,6 +4,7 @@ import {
   isTestModeEnabled,
   verifyAccessToken
 } from '../lib/access-token.js';
+import { isFreeAccessEmail, verifyFirebaseIdentity } from '../lib/firebase-access.js';
 
 function json(res, status, payload) {
   res.setHeader?.('Cache-Control', 'no-store');
@@ -81,6 +82,29 @@ export default async function handler(req, res) {
       const accessToken = createAccessToken({ uid, orderID: 'test-mode' });
       if (!accessToken) return json(res, 500, { error: 'Falta ACCESS_TOKEN_SECRET en el servidor.' });
       return json(res, 200, { accessToken, testMode: true });
+    }
+
+    if (action === 'free-access') {
+      const identity = await verifyFirebaseIdentity(req, body);
+      if (!identity || !identity.emailVerified || !isFreeAccessEmail(identity.email)) {
+        return json(res, 403, { error: 'Esta cuenta no tiene acceso gratuito.' });
+      }
+      if (uid && uid !== identity.uid) {
+        return json(res, 403, { error: 'La identidad del usuario no coincide.' });
+      }
+
+      const accessToken = createAccessToken({
+        uid: identity.uid,
+        orderID: 'free-access',
+        scope: 'free'
+      });
+      if (!accessToken) return json(res, 500, { error: 'Falta ACCESS_TOKEN_SECRET en el servidor.' });
+
+      return json(res, 200, {
+        accessToken,
+        freeAccess: true,
+        email: identity.email
+      });
     }
 
     const paypalToken = await getPayPalAccessToken(config);

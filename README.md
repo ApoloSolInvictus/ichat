@@ -20,12 +20,16 @@ Set these variables in Vercel. Never place provider secrets in `index.html` or c
 | `PAYPAL_ENVIRONMENT` | No | `sandbox` or `live`; defaults to `sandbox` |
 | `ACCESS_TOKEN_SECRET` | Strongly recommended | Secret used to sign Pro access tokens |
 | `ALLOW_TEST_MODE` | No | Set to `true` only for a private test deployment |
+| `FIREBASE_WEB_API_KEY` | No | Firebase Web API key used to verify ID tokens server-side; defaults to the project key in the app |
+| `FREE_ACCESS_EMAILS` | No | Comma-separated exact email allowlist; defaults to `ronnywoods77@gmail.com` |
 
 `PAYPAL_SECRET` is used as a temporary signing fallback when `ACCESS_TOKEN_SECRET` is absent, so an existing deployment can migrate without immediately breaking access. Add a dedicated random `ACCESS_TOKEN_SECRET` and remove that fallback dependency as soon as possible.
 
 ## Access model
 
 The browser no longer grants Pro access from `localStorage` alone. After PayPal confirms a completed order, the server issues a signed access token bound to the Firebase user ID. The translation API requires that token for Pro requests. The public demo is deliberately limited in length and requests per hour.
+
+The configured free-access account is also verified server-side against Firebase Auth. Only a verified Firebase identity whose normalized email exactly matches `FREE_ACCESS_EMAILS` receives a signed `free` access token; changing the frontend or sending a different `uid` does not bypass this check.
 
 ## Local checks
 

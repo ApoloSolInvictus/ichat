@@ -834,12 +834,36 @@
                 localStorage.removeItem(tokenKey);
             }
 
+            // The server decides whether this Firebase identity is allowlisted.
+            // The email check here only avoids an unnecessary lookup for everyone else.
+            if ((user.email || '').trim().toLowerCase() === 'ronnywoods77@gmail.com') {
+                if (await requestFreeAccess(user)) return;
+            }
+
             currentAccessToken = null;
             landingPage.classList.remove('hidden');
             translatorApp.classList.add('hidden');
             heroAuthSection.classList.add('hidden');
             paypalPayCard.classList.remove('hidden');
             await loadPayPalSDKAndRender(user);
+        }
+
+        async function requestFreeAccess(user) {
+            try {
+                const idToken = await user.getIdToken();
+                const response = await fetch('/api/paypal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'free-access', uid: user.uid, idToken })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.accessToken) return false;
+                grantAccess(user, data.accessToken, 'Developer Pro access enabled');
+                return true;
+            } catch (error) {
+                console.warn('Free access verification failed:', error);
+                return false;
+            }
         }
 
         async function loadPayPalSDKAndRender(user) {
