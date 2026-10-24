@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="yes">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -19,7 +19,7 @@
             position: static !important;
         }
 
-        /* Google Translate is intentionally headless: keep its runtime, hide every UI artifact. */
+        /* Google Translate is manual and headless: keep its runtime, hide every UI artifact. */
         .goog-te-banner-frame,
         .goog-te-banner-frame.skiptranslate,
         body > .skiptranslate,
@@ -981,24 +981,22 @@
             { code: 'hi-IN', gtCode: 'hi', name: 'हिन्दी (Hindi)', flag: '🇮🇳' }
         ];
 
-        /* Helper to get/set Google Translate cookie */
-        function setGoogleTranslateCookie(gtCode) {
+        const SOURCE_LANGUAGE = 'en';
+
+        // Always start from the English source page. A previous device/browser
+        // selection must never override the language chosen inside iChat.
+        function clearGoogleTranslateCookie() {
+            const expired = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            document.cookie = expired;
+
             const domain = window.location.hostname;
-            if (gtCode === 'en' || !gtCode) {
-                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                if (domain) {
-                    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain};`;
-                    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain};`;
-                }
-            } else {
-                const cookieVal = `/en/${gtCode}`;
-                document.cookie = `googtrans=${cookieVal}; path=/;`;
-                if (domain) {
-                    document.cookie = `googtrans=${cookieVal}; path=/; domain=${domain};`;
-                    document.cookie = `googtrans=${cookieVal}; path=/; domain=.${domain};`;
-                }
+            if (domain) {
+                document.cookie = `${expired} domain=${domain};`;
+                document.cookie = `${expired} domain=.${domain};`;
             }
         }
+
+        clearGoogleTranslateCookie();
 
         // GOOGLE TRANSLATION SCRIPT INITIALIZATION
         function googleTranslateElementInit() {
@@ -1050,15 +1048,16 @@
             document.head.appendChild(s);
         })();
 
-        // Trigger Google Translate without exposing its widget or notifications.
+        // Trigger Google Translate only after an explicit choice in the app menu.
         let translateRetryCount = 0;
         function triggerGoogleTranslate(targetGtCode) {
-            setGoogleTranslateCookie(targetGtCode);
+            if (targetGtCode === SOURCE_LANGUAGE) clearGoogleTranslateCookie();
 
             const gtCombo = document.querySelector('.goog-te-combo');
             if (gtCombo) {
                 gtCombo.value = targetGtCode;
                 gtCombo.dispatchEvent(new Event('change'));
+                if (targetGtCode === SOURCE_LANGUAGE) clearGoogleTranslateCookie();
                 updateSaturnButtonLabel(targetGtCode);
                 hideGoogleTranslateUi();
                 translateRetryCount = 0;
@@ -1066,8 +1065,8 @@
                 translateRetryCount++;
                 setTimeout(() => triggerGoogleTranslate(targetGtCode), 500);
             } else {
-                // Fallback: Reload page with updated googtrans cookie
-                location.reload();
+                // Never reload here: it would re-trigger automatic translation.
+                translateRetryCount = 0;
             }
         }
 

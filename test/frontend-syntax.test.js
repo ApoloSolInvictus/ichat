@@ -12,4 +12,14 @@ test('inline browser JavaScript compiles', () => {
   scripts.forEach((source, index) => {
     assert.doesNotThrow(() => new Function(source), `inline script ${index + 1} should compile`);
   });
+
+  assert.equal(
+    [...html.matchAll(/translate\.google\.com\/translate_a\/element\.js/g)].length,
+    1,
+    'Google Translate should load only once'
+  );
+  assert.match(html, /pageLanguage:\s*'en'/, 'English must remain the source language');
+  assert.match(html, /autoDisplay:\s*false/, 'Google Translate must not auto-display or auto-select');
+  assert.match(html, /clearGoogleTranslateCookie/, 'previous automatic language choices must be cleared');
+  assert.doesNotMatch(html, /location\.reload\(\)/, 'language changes must not reload the page');
 });
