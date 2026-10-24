@@ -7,78 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-    <style type="text/css">
-        /* 1. Ocultar la barra superior (banner iframe) de Google Translate */
-          .goog-te-banner-frame.skiptranslate,
-          .goog-te-banner-frame {
-           display: none !important;
-       }
-
-        /* 2. Prevenir que la página baje cuando Google Translate agregue su banner */
-      body {
-        top: 0px !important;
-        position: static !important;
-      }
-
-        /* 3. Ocultar tooltips, popups de traducción y sugerencias al pasar el mouse */
-           #goog-gt-tt,
-          .goog-te-balloon-frame,
-          .goog-tooltip,
-          .goog-tooltip:hover {
-           display: none !important;
-      }
-
-        /* 4. Evitar highlighting o resaltado de texto traducido */
-            .goog-text-highlight {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-      }
-
-        /* 5. Ocultar el widget desplegable por defecto de Google si solo usas traducción automática o selectores custom */
-            .goog-te-gadget {
-            display: none !important;
-      }
-
-        /* 6. Ocultar avisos de atribución y gadgets flotantes */
-            .goog-te-spinner-pos,
-            #google_translate_element {
-            display: none !important;
-    }
-</style>
-
-<div id="google_translate_element"></div>
-
-<script type="text/javascript">
-  function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'es', // Idioma de origen de tu sitio (ej: 'es' para español, 'en' para inglés)
-      autoDisplay: false,  // Previene que se despliegue la barra o avisos automáticos
-      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-    }, 'google_translate_element');
-  }
-</script>
-
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-<script type="text/javascript">
-  (function() {
-    // Observer para eliminar márgenes del body en caso de que Google los inyecte dinámicamente
-    var observer = new MutationObserver(function(mutations) {
-      if (document.body.style.top !== '0px' && document.body.style.top !== '') {
-        document.body.style.top = '0px';
-      }
-    });
-
-    window.addEventListener('DOMContentLoaded', function() {
-      observer.observe(document.body, {
-        attributes: true,
-        attributeFilter: ['style']
-      });
-    });
-  })();
-</script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -91,12 +19,15 @@
             position: static !important;
         }
 
-        /* Suppress Google Translate banner frames, tooltips, and highlights without hiding DOM container */
+        /* Google Translate is intentionally headless: keep its runtime, hide every UI artifact. */
         .goog-te-banner-frame,
         .goog-te-banner-frame.skiptranslate,
+        body > .skiptranslate,
         .goog-te-balloon-frame,
         #goog-gt-tt,
         .goog-te-spinner-pos,
+        .goog-te-ftab,
+        .goog-te-gadget,
         .goog-tooltip,
         .goog-tooltip:hover,
         .goog-text-highlight {
@@ -106,7 +37,15 @@
             box-shadow: none !important;
         }
 
-        /* Keep hidden from view while allowing full DOM initialization */
+        html,
+        body,
+        body.translated-ltr,
+        body.translated-rtl {
+            top: 0 !important;
+            margin-top: 0 !important;
+        }
+
+        /* Keep the Google runtime container available without showing its selector. */
         #google_translate_element {
             position: absolute !important;
             top: -9999px !important;
@@ -1073,6 +1012,36 @@
             }
         }
 
+        // Google can inject banner/tooltip nodes after a language change. Remove
+        // those nodes as soon as they appear so the app header never moves.
+        const googleTranslateUiSelectors = [
+            '.goog-te-banner-frame',
+            'body > .skiptranslate',
+            '.goog-te-balloon-frame',
+            '#goog-gt-tt',
+            '.goog-te-ftab',
+            '.goog-tooltip',
+            '.goog-te-spinner-pos'
+        ];
+
+        function hideGoogleTranslateUi() {
+            document.documentElement.style.setProperty('top', '0px', 'important');
+            if (document.body) {
+                document.body.style.setProperty('top', '0px', 'important');
+                document.body.style.setProperty('margin-top', '0px', 'important');
+            }
+            document.querySelectorAll(googleTranslateUiSelectors.join(',')).forEach((node) => {
+                node.style.setProperty('display', 'none', 'important');
+                node.style.setProperty('visibility', 'hidden', 'important');
+            });
+        }
+
+        new MutationObserver(hideGoogleTranslateUi).observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+        hideGoogleTranslateUi();
+
         // Load Google Translate Script with HTTPS
         (function loadGoogleTranslateScript() {
             const s = document.createElement('script');
@@ -1081,7 +1050,7 @@
             document.head.appendChild(s);
         })();
 
-        // SILENTLY TRIGGER GOOGLE TRANSLATE WITHOUT POPUPS
+        // Trigger Google Translate without exposing its widget or notifications.
         let translateRetryCount = 0;
         function triggerGoogleTranslate(targetGtCode) {
             setGoogleTranslateCookie(targetGtCode);
@@ -1091,15 +1060,13 @@
                 gtCombo.value = targetGtCode;
                 gtCombo.dispatchEvent(new Event('change'));
                 updateSaturnButtonLabel(targetGtCode);
-                showToast(`Page translated to ${targetGtCode.toUpperCase()}`, "success");
+                hideGoogleTranslateUi();
                 translateRetryCount = 0;
             } else if (translateRetryCount < 8) {
                 translateRetryCount++;
-                showToast("Initializing translator...", "sync");
                 setTimeout(() => triggerGoogleTranslate(targetGtCode), 500);
             } else {
                 // Fallback: Reload page with updated googtrans cookie
-                showToast("Applying translation...", "sync");
                 location.reload();
             }
         }
