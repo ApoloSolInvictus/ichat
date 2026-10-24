@@ -21,5 +21,6 @@ test('inline browser JavaScript compiles', () => {
   assert.match(html, /pageLanguage:\s*'en'/, 'English must remain the source language');
   assert.match(html, /autoDisplay:\s*false/, 'Google Translate must not auto-display or auto-select');
   assert.match(html, /clearGoogleTranslateCookie/, 'previous automatic language choices must be cleared');
-  assert.doesNotMatch(html, /location\.reload\(\)/, 'language changes must not reload the page');
+  assert.match(html, /setGoogleTranslateCookie/, 'manual language choices must be persisted explicitly');
+  assert.match(html, /location\.reload\(\)/, 'manual language changes must reload to apply the translation');
 });

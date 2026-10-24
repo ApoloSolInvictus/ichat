@@ -982,6 +982,7 @@
         ];
 
         const SOURCE_LANGUAGE = 'en';
+        const EXPLICIT_LANGUAGE_KEY = 'ichat_explicit_language';
 
         // Always start from the English source page. A previous device/browser
         // selection must never override the language chosen inside iChat.
@@ -996,7 +997,28 @@
             }
         }
 
-        clearGoogleTranslateCookie();
+        function setGoogleTranslateCookie(gtCode) {
+            if (!gtCode || gtCode === SOURCE_LANGUAGE) {
+                clearGoogleTranslateCookie();
+                return;
+            }
+
+            const cookieValue = `/en/${gtCode}`;
+            const cookie = `googtrans=${cookieValue}; path=/;`;
+            document.cookie = cookie;
+
+            const domain = window.location.hostname;
+            if (domain) {
+                document.cookie = `${cookie} domain=${domain};`;
+                document.cookie = `${cookie} domain=.${domain};`;
+            }
+        }
+
+        // Preserve only a language explicitly selected in the iChat menu for
+        // the one reload needed to let Google apply the translation cookie.
+        const explicitLanguage = sessionStorage.getItem(EXPLICIT_LANGUAGE_KEY);
+        sessionStorage.removeItem(EXPLICIT_LANGUAGE_KEY);
+        if (!explicitLanguage) clearGoogleTranslateCookie();
 
         // GOOGLE TRANSLATION SCRIPT INITIALIZATION
         function googleTranslateElementInit() {
@@ -1007,6 +1029,10 @@
                     autoDisplay: false,
                     layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
                 }, 'google_translate_element');
+
+                if (explicitLanguage && explicitLanguage !== SOURCE_LANGUAGE) {
+                    updateSaturnButtonLabel(explicitLanguage);
+                }
             }
         }
 
@@ -1048,26 +1074,21 @@
             document.head.appendChild(s);
         })();
 
-        // Trigger Google Translate only after an explicit choice in the app menu.
-        let translateRetryCount = 0;
+        // Apply a language only after an explicit choice in the app menu. The
+        // cookie + reload path is more reliable than dispatching a change event
+        // against Google's hidden selector.
         function triggerGoogleTranslate(targetGtCode) {
-            if (targetGtCode === SOURCE_LANGUAGE) clearGoogleTranslateCookie();
-
-            const gtCombo = document.querySelector('.goog-te-combo');
-            if (gtCombo) {
-                gtCombo.value = targetGtCode;
-                gtCombo.dispatchEvent(new Event('change'));
-                if (targetGtCode === SOURCE_LANGUAGE) clearGoogleTranslateCookie();
-                updateSaturnButtonLabel(targetGtCode);
-                hideGoogleTranslateUi();
-                translateRetryCount = 0;
-            } else if (translateRetryCount < 8) {
-                translateRetryCount++;
-                setTimeout(() => triggerGoogleTranslate(targetGtCode), 500);
+            if (targetGtCode === SOURCE_LANGUAGE) {
+                clearGoogleTranslateCookie();
+                sessionStorage.removeItem(EXPLICIT_LANGUAGE_KEY);
             } else {
-                // Never reload here: it would re-trigger automatic translation.
-                translateRetryCount = 0;
+                setGoogleTranslateCookie(targetGtCode);
+                sessionStorage.setItem(EXPLICIT_LANGUAGE_KEY, targetGtCode);
             }
+
+            updateSaturnButtonLabel(targetGtCode);
+            hideGoogleTranslateUi();
+            location.reload();
         }
 
         function updateSaturnButtonLabel(gtCode) {
