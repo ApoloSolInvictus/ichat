@@ -994,6 +994,11 @@
             if (domain) {
                 document.cookie = `${expired} domain=${domain};`;
                 document.cookie = `${expired} domain=.${domain};`;
+
+                const parts = domain.split('.');
+                if (parts.length > 2) {
+                    document.cookie = `${expired} domain=.${parts.slice(-2).join('.')};`;
+                }
             }
         }
 
@@ -1003,15 +1008,11 @@
                 return;
             }
 
+            // Remove stale host/domain variants first. Multiple googtrans cookies
+            // can make Google keep the previous language after a new selection.
+            clearGoogleTranslateCookie();
             const cookieValue = `/en/${gtCode}`;
-            const cookie = `googtrans=${cookieValue}; path=/;`;
-            document.cookie = cookie;
-
-            const domain = window.location.hostname;
-            if (domain) {
-                document.cookie = `${cookie} domain=${domain};`;
-                document.cookie = `${cookie} domain=.${domain};`;
-            }
+            document.cookie = `googtrans=${cookieValue}; path=/;`;
         }
 
         // Preserve only a language explicitly selected in the iChat menu for
