@@ -1,74 +1,138 @@
-export default async function handler(req, res) {
-  // Obtenemos las credenciales desde Vercel
-  const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
-  const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
-  
-  // Por defecto usa 'sandbox' para pruebas, pero si pones 'live' en Vercel, cobrará de verdad.
-  const PAYPAL_ENVIRONMENT = process.env.PAYPAL_ENVIRONMENT || 'sandbox'; 
-  
-  const baseURL = PAYPAL_ENVIRONMENT === 'live' 
-    ? 'https://api-m.paypal.com' 
-    : 'https://api-m.sandbox.paypal.com';
+import {
+  createAccessToken,
+  getRequestHeader,
+  isTestModeEnabled,
+  verifyAccessToken
+} from '../lib/access-token.js';
 
-  // Si el frontend solicita el Client ID para cargar el botón
+function json(res, status, payload) {
+  res.setHeader?.('Cache-Control', 'no-store');
+  res.setHeader?.('X-Content-Type-Options', 'nosniff');
+  return res.status(status).json(payload);
+}
+
+function getBody(req) {
+  if (!req?.body) return {};
+  if (typeof req.body === 'string') {
+    try { return JSON.parse(req.body); } catch { return {}; }
+  }
+  return req.body;
+}
+
+function getConfig() {
+  const environment = process.env.PAYPAL_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+  return {
+    clientId: process.env.PAYPAL_CLIENT_ID || '',
+    secret: process.env.PAYPAL_SECRET || '',
+    baseURL: environment === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com',
+    environment
+  };
+}
+
+async function paypalJson(url, options) {
+  const response = await fetch(url, options);
+  const data = await response.json().catch(() => ({}));
+  return { response, data };
+}
+
+async function getPayPalAccessToken(config) {
+  if (!config.clientId || !config.secret) throw new Error('PayPal no está configurado.');
+
+  const auth = Buffer.from(`${config.clientId}:${config.secret}`).toString('base64');
+  const { response, data } = await paypalJson(`${config.baseURL}/v1/oauth2/token`, {
+    method: 'POST',
+    body: 'grant_type=client_credentials',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  });
+
+  if (!response.ok || !data.access_token) throw new Error('PayPal no autorizó la solicitud.');
+  return data.access_token;
+}
+
+export default async function handler(req, res) {
+  const config = getConfig();
+
   if (req.method === 'GET') {
-    return res.status(200).json({ clientId: PAYPAL_CLIENT_ID });
+    return json(res, 200, {
+      clientId: config.clientId,
+      environment: config.environment,
+      testMode: isTestModeEnabled()
+    });
   }
 
-  if (req.method === 'POST') {
-    const { action, orderID } = req.body;
+  if (req.method !== 'POST') return json(res, 405, { error: 'Método no permitido.' });
 
-    try {
-      // 1. Autenticación con los servidores de PayPal
-      const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`).toString('base64');
-      const tokenRes = await fetch(`${baseURL}/v1/oauth2/token`, {
+  const body = getBody(req);
+  const action = body.action;
+  const uid = typeof body.uid === 'string' ? body.uid.trim() : '';
+
+  try {
+    if (action === 'verify') {
+      const token = body.accessToken || getRequestHeader(req, 'x-ichat-access-token');
+      const payload = verifyAccessToken(token, uid);
+      return json(res, 200, { valid: Boolean(payload), expiresAt: payload?.exp || null });
+    }
+
+    if (action === 'test-access') {
+      if (!isTestModeEnabled() || !uid) return json(res, 403, { error: 'El modo de prueba está desactivado.' });
+      const accessToken = createAccessToken({ uid, orderID: 'test-mode' });
+      if (!accessToken) return json(res, 500, { error: 'Falta ACCESS_TOKEN_SECRET en el servidor.' });
+      return json(res, 200, { accessToken, testMode: true });
+    }
+
+    const paypalToken = await getPayPalAccessToken(config);
+
+    if (action === 'create') {
+      if (!uid) return json(res, 400, { error: 'Falta el identificador del usuario.' });
+
+      const { response, data } = await paypalJson(`${config.baseURL}/v2/checkout/orders`, {
         method: 'POST',
-        body: 'grant_type=client_credentials',
         headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${paypalToken}`,
+          'PayPal-Request-Id': `ichat-${uid}-${Date.now()}`
+        },
+        body: JSON.stringify({
+          intent: 'CAPTURE',
+          purchase_units: [{
+            amount: { currency_code: 'USD', value: '14.00' },
+            description: 'iChat Pro - Traductor de Voz De Por Vida'
+          }]
+        })
+      });
+
+      if (!response.ok || !data.id) return json(res, 502, { error: 'PayPal no pudo crear la orden.' });
+      return json(res, 200, { id: data.id });
+    }
+
+    if (action === 'capture') {
+      const orderID = typeof body.orderID === 'string' ? body.orderID.trim() : '';
+      if (!orderID || !uid) return json(res, 400, { error: 'Faltan orderID o el identificador del usuario.' });
+
+      const { response, data } = await paypalJson(`${config.baseURL}/v2/checkout/orders/${encodeURIComponent(orderID)}/capture`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${paypalToken}`,
+          'PayPal-Request-Id': `ichat-capture-${orderID}`
         }
       });
-      const tokenData = await tokenRes.json();
-      const accessToken = tokenData.access_token;
 
-      // 2. Creación de una nueva orden de cobro ($14 USD)
-      if (action === 'create') {
-        const orderRes = await fetch(`${baseURL}/v2/checkout/orders`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          },
-          body: JSON.stringify({
-            intent: 'CAPTURE',
-            purchase_units: [{
-              amount: { currency_code: 'USD', value: '14.00' },
-              description: 'iChat Pro - Traductor de Voz De Por Vida'
-            }]
-          })
-        });
-        const orderData = await orderRes.json();
-        return res.status(200).json({ id: orderData.id });
+      if (!response.ok || data.status !== 'COMPLETED') {
+        return json(res, 502, { error: 'PayPal no pudo confirmar el pago.', status: data.status || 'UNKNOWN' });
       }
 
-      // 3. Captura (confirmación) del dinero una vez el usuario aprueba el pop-up
-      if (action === 'capture') {
-        const captureRes = await fetch(`${baseURL}/v2/checkout/orders/${orderID}/capture`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          }
-        });
-        const captureData = await captureRes.json();
-        return res.status(200).json(captureData);
-      }
-    } catch (error) {
-      console.error("Error en servidor PayPal:", error);
-      return res.status(500).json({ error: 'Error procesando el pago con PayPal' });
+      const accessToken = createAccessToken({ uid, orderID });
+      if (!accessToken) return json(res, 500, { error: 'Falta ACCESS_TOKEN_SECRET en el servidor.' });
+      return json(res, 200, { status: data.status, accessToken });
     }
-  }
 
-  return res.status(405).json({ error: 'Método no permitido' });
+    return json(res, 400, { error: 'Acción no válida.' });
+  } catch (error) {
+    console.error('PayPal server error:', error?.message || 'unknown');
+    return json(res, 500, { error: 'Error procesando la operación de PayPal.' });
+  }
 }

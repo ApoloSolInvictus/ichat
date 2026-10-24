@@ -359,7 +359,7 @@
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-800/70 p-3 rounded-2xl border border-slate-700/60">
                         <div class="flex items-center gap-2 text-xs text-purple-300">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm animate-pulse"></i>
-                            <span id="demoStatusText">Powered by OpenAI gpt-4o & TTS HD Voice</span>
+                            <span id="demoStatusText">Powered by OpenAI + ElevenLabs HD Voice</span>
                         </div>
                         <button id="btnTranslateDemo" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:to-pink-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-bolt"></i> Translate with OpenAI
@@ -370,7 +370,7 @@
                     <div class="flex flex-col items-start bg-purple-950/40 border border-purple-500/30 rounded-2xl p-4 w-full">
                         <div class="flex items-center justify-between w-full mb-1">
                             <span class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-robot text-purple-400"></i> OpenAI AI Translation & HD Voice
+                                <i class="fa-solid fa-robot text-purple-400"></i> OpenAI Translation & ElevenLabs Voice
                             </span>
                             <button id="btnPlayDemoTo" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition active:scale-95 shadow">
                                 <i class="fa-solid fa-volume-high"></i> Listen HD Voice
@@ -693,7 +693,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
-            signInAnonymously, 
             signInWithCustomToken, 
             GoogleAuthProvider, 
             signInWithPopup, 
@@ -702,12 +701,6 @@
             signOut, 
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // Developer & Administrator Whitelist
-        const ADMIN_EMAILS = [
-            'ronnywoods77@gmail.com',
-            'info@wstudio3d.com'
-        ];
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
@@ -735,6 +728,12 @@
         const paypalPayCard = document.getElementById('paypalPayCard');
 
         let currentUser = null;
+        let currentAccessToken = null;
+
+        window.iChatSession = {
+            getAccessToken: () => currentAccessToken,
+            getUserId: () => currentUser?.uid || null
+        };
 
         getRedirectResult(auth).then((result) => {
             if (result && result.user) {
@@ -784,19 +783,8 @@
 
                 showToast(`⚠️ ${errorTitle}: ${errorMsg}`, "error");
 
-                setTimeout(async () => {
-                    try {
-                        const anonRes = await signInAnonymously(auth);
-                        checkUserPaymentAndGrantAccess(anonRes.user);
-                    } catch (anonErr) {
-                        const localDemoUser = {
-                            uid: 'demo_user_wstudio3d',
-                            email: 'demo@ichat.wstudio3d.com',
-                            displayName: 'Demo User'
-                        };
-                        checkUserPaymentAndGrantAccess(localDemoUser);
-                    }
-                }, 2000);
+                // Do not silently create anonymous/demo users after a login error.
+                // That behavior allowed the client to bypass the paid-access gate.
             }
         }
 
@@ -811,9 +799,11 @@
             }
             if (currentUser) {
                 localStorage.removeItem(`ichat_paid_${currentUser.uid}`);
+                localStorage.removeItem(`ichat_access_token_${currentUser.uid}`);
             }
             localStorage.removeItem('ichat_paid_user');
             currentUser = null;
+            currentAccessToken = null;
             landingPage.classList.remove('hidden');
             translatorApp.classList.add('hidden');
             heroAuthSection.classList.remove('hidden');
@@ -823,28 +813,33 @@
 
         async function checkUserPaymentAndGrantAccess(user) {
             currentUser = user;
-            const paidLocally = localStorage.getItem(`ichat_paid_${user.uid}`);
-            
-            const isAdmin = user.email && ADMIN_EMAILS.some(email => email.toLowerCase() === user.email.toLowerCase());
+            const tokenKey = `ichat_access_token_${user.uid}`;
+            const storedToken = localStorage.getItem(tokenKey);
 
-            if (paidLocally === 'true' || isAdmin) {
-                landingPage.classList.add('hidden');
-                translatorApp.classList.remove('hidden');
-                userEmail.textContent = (user.email || user.displayName || "Pro User") + (isAdmin ? " 👑 (Dev)" : "");
-                
-                if (isAdmin) {
-                    showToast("Developer Mode Activated! 👑", "success");
-                } else {
-                    showToast("Welcome to iChat Pro!", "success");
+            if (storedToken) {
+                try {
+                    const verifyResponse = await fetch('/api/paypal', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'verify', uid: user.uid, accessToken: storedToken })
+                    });
+                    const verification = await verifyResponse.json();
+                    if (verifyResponse.ok && verification.valid) {
+                        grantAccess(user, storedToken, 'Welcome to iChat Pro!');
+                        return;
+                    }
+                } catch (error) {
+                    console.warn('Access verification failed:', error);
                 }
-            } else {
-                landingPage.classList.remove('hidden');
-                translatorApp.classList.add('hidden');
-                heroAuthSection.classList.add('hidden');
-                paypalPayCard.classList.remove('hidden');
-                
-                await loadPayPalSDKAndRender(user);
+                localStorage.removeItem(tokenKey);
             }
+
+            currentAccessToken = null;
+            landingPage.classList.remove('hidden');
+            translatorApp.classList.add('hidden');
+            heroAuthSection.classList.add('hidden');
+            paypalPayCard.classList.remove('hidden');
+            await loadPayPalSDKAndRender(user);
         }
 
         async function loadPayPalSDKAndRender(user) {
@@ -861,15 +856,23 @@
                 const data = await res.json();
                 
                 if (!data.clientId) {
+                    if (data.testMode) {
+                        container.innerHTML = `
+                            <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
+                                <i class="fa-solid fa-flask text-amber-400 mr-1"></i> Test mode is enabled for this deployment.
+                            </div>
+                            <button id="devTestAccessBtn" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-green-900/30 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-unlock-keyhole"></i> Launch Test Access
+                            </button>
+                        `;
+                        document.getElementById('devTestAccessBtn').addEventListener('click', () => requestTestAccess(user));
+                        return;
+                    }
                     container.innerHTML = `
                         <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> <strong>Missing PAYPAL_CLIENT_ID:</strong> Set this variable in Vercel to process live payments.
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> <strong>Payments are not configured:</strong> Please try again later.
                         </div>
-                        <button id="devSkipPayBtn" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-green-900/30 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i> Try App / Skip Payment (Test Mode)
-                        </button>
                     `;
-                    document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
                     return;
                 }
 
@@ -886,33 +889,46 @@
                         <div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl text-red-300 text-xs mb-3 text-left">
                             <i class="fa-solid fa-triangle-exclamation mr-1"></i> Failed to load PayPal SDK. Please check Client ID.
                         </div>
-                        <button id="devSkipPayBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-3 rounded-xl text-sm w-full transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i> Try App (Test Mode)
-                        </button>
                      `;
-                     document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
                 };
                 document.head.appendChild(script);
             } catch (err) {
                 console.error("PayPal SDK loading error:", err);
                 container.innerHTML = `
                     <div class="bg-amber-900/40 border border-amber-500/50 p-3 rounded-xl text-amber-200 text-xs mb-3 text-left leading-relaxed">
-                        <i class="fa-solid fa-info-circle text-amber-400 mr-1"></i> PayPal backend endpoint not found.
+                        <i class="fa-solid fa-info-circle text-amber-400 mr-1"></i> Payment service is temporarily unavailable.
                     </div>
-                    <button id="devSkipPayBtn" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold px-4 py-3.5 rounded-xl text-sm w-full transition shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-rocket"></i> Launch Translator (Test Mode)
-                    </button>
                 `;
-                document.getElementById('devSkipPayBtn').addEventListener('click', () => grantAccess(user));
             }
         }
 
-        function grantAccess(user) {
-            localStorage.setItem(`ichat_paid_${user.uid}`, 'true');
+        async function requestTestAccess(user) {
+            try {
+                const response = await fetch('/api/paypal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'test-access', uid: user.uid })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.accessToken) throw new Error(data.error || 'Test access unavailable');
+                grantAccess(user, data.accessToken, 'Test access enabled');
+            } catch (error) {
+                console.error('Test access error:', error);
+                showToast('Test access is unavailable.', 'error');
+            }
+        }
+
+        function grantAccess(user, accessToken, message = 'Welcome to iChat Pro!') {
+            if (!accessToken) {
+                showToast('A valid access token is required.', 'error');
+                return;
+            }
+            currentAccessToken = accessToken;
+            localStorage.setItem(`ichat_access_token_${user.uid}`, accessToken);
             landingPage.classList.add('hidden');
             translatorApp.classList.remove('hidden');
             userEmail.textContent = user.email || user.displayName || "Pro User";
-            showToast("Access granted (Test Mode)", "success");
+            showToast(message, "success");
         }
 
         function renderPayPalButton(user) {
@@ -931,7 +947,7 @@
                         const res = await fetch('/api/paypal', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'create' })
+                            body: JSON.stringify({ action: 'create', uid: user.uid })
                         });
                         const order = await res.json();
                         if (!order.id) {
@@ -944,13 +960,16 @@
                         const res = await fetch('/api/paypal', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'capture', orderID: data.orderID })
+                            body: JSON.stringify({ action: 'capture', orderID: data.orderID, uid: user.uid })
                         });
                         const details = await res.json();
                         
                         if (details.status === 'COMPLETED') {
-                            showToast("Payment successful! Activating account...", "success");
-                            grantAccess(user);
+                            if (details.accessToken) {
+                                grantAccess(user, details.accessToken, "Payment successful! Welcome to iChat Pro!");
+                            } else {
+                                showToast("Payment confirmed, but access activation needs a retry.", "error");
+                            }
                         } else {
                             showToast("Payment could not be processed.", "error");
                         }
@@ -1216,7 +1235,7 @@
                 const response = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, fromLang, toLang })
+                    body: JSON.stringify({ text, fromLang, toLang, demo: true })
                 });
 
                 const data = await response.json();
@@ -1290,8 +1309,7 @@
                 });
             }
 
-            // Initial demo run on load
-            setTimeout(runOpenAIDemoTranslation, 500);
+            // Do not spend API credits automatically on every page load.
         }
 
         // MAIN TRANSLATION APP LOGIC
@@ -1310,6 +1328,7 @@
         const welcomeMessage = document.getElementById('welcomeMessage');
 
         let isRecording = false;
+        let isProcessing = false;
         let recordedChunks = [];
         let restartTimeout = null;
 
@@ -1349,7 +1368,14 @@
         }
 
         function toggleRecording() {
-            if (!recognition) return;
+            if (!recognition) {
+                showToast("Speech recognition is not supported in this browser.", "warning");
+                return;
+            }
+            if (isProcessing) {
+                showToast("Please wait for the current translation to finish.", "info");
+                return;
+            }
 
             if (isRecording) {
                 stopRecordingManually();
@@ -1367,6 +1393,9 @@
                 recognition.start();
             } catch (e) {
                 console.error("Error starting recognition:", e);
+                isRecording = false;
+                updateUIForRecording(false);
+                showToast("Could not start the microphone.", "error");
             }
         }
 
@@ -1404,7 +1433,7 @@
             } else {
                 micContainer.classList.remove('recording');
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-                stopBtn.add('hidden');
+                stopBtn.classList.add('hidden');
                 livePreviewContainer.classList.add('hidden');
             }
         }
@@ -1439,8 +1468,20 @@
                         if (isRecording) {
                             try { recognition.start(); } catch (e) {}
                         }
-                    }, 50);
+                    }, 150);
                 }
+            };
+
+            recognition.onerror = (event) => {
+                if (event.error === 'no-speech') return;
+                console.warn('Speech recognition error:', event.error);
+                isRecording = false;
+                clearTimeout(restartTimeout);
+                updateUIForRecording(false);
+                const message = event.error === 'not-allowed'
+                    ? 'Microphone permission was denied.'
+                    : 'Speech recognition stopped unexpectedly.';
+                showToast(message, "error");
             };
         }
 
@@ -1470,21 +1511,35 @@
         async function processTranslation(text) {
             const fromLang = langFromEl.value;
             const toLang = langToEl.value;
+            const accessToken = window.iChatSession?.getAccessToken?.();
+            const uid = window.iChatSession?.getUserId?.();
+
+            if (!accessToken || !uid) {
+                showToast("Your Pro access could not be verified. Please sign in again.", "error");
+                return;
+            }
 
             addChatBubble(text, 'source', fromLang);
+            isProcessing = true;
 
             try {
                 const response = await fetch('/api/translate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, fromLang, toLang })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-iChat-Access-Token': accessToken
+                    },
+                    body: JSON.stringify({ text, fromLang, toLang, uid })
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.translatedText) {
                     const translatedText = data.translatedText;
-                    showToast("Translated successfully!", "success");
+                    showToast(
+                        data.audioContent ? "Translated with ElevenLabs voice!" : "Translated; using browser voice.",
+                        "success"
+                    );
 
                     addChatBubble(translatedText, 'translated', toLang, data.audioContent);
                     speakText(translatedText, toLang, data.audioContent);
@@ -1495,25 +1550,27 @@
             } catch (error) {
                 console.error("Translation request error:", error);
                 showToast("Connection error.", "error");
+            } finally {
+                isProcessing = false;
             }
         }
 
         function speakText(text, lang, audioContent = null) {
             if (audioContent) {
                 try {
+                    if (window.iChatCurrentAudio) window.iChatCurrentAudio.pause();
                     const audio = new Audio(audioContent);
-                    audio.play().catch(e => console.error(e));
+                    window.iChatCurrentAudio = audio;
+                    audio.play().catch(e => {
+                        console.warn("ElevenLabs audio playback failed; using browser voice.", e);
+                        speakTextFallback(text, lang);
+                    });
                     return;
-                } catch (e) {}
+                } catch (e) {
+                    console.warn("Could not create audio player; using browser voice.", e);
+                }
             }
-
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = lang;
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
+            speakTextFallback(text, lang);
         }
 
         function addChatBubble(text, type, langCode, audioContent = null) {

@@ -107,7 +107,7 @@
                             <i class="fa-solid fa-microphone text-purple-400"></i> Datos de Voz y Entrada de Audio
                         </h3>
                         <p class="text-slate-400 text-sm">
-                            Para ofrecer la función de interpretación en tiempo real, solicitamos acceso al micrófono de tu dispositivo. Las grabaciones de voz se procesan temporalmente de manera efímera para la conversión de voz a texto y su posterior traducción mediante IA. <strong>No almacenamos archivos de voz grabados permanentemente en nuestros servidores.</strong>
+                            Para ofrecer la función de interpretación en tiempo real, solicitamos acceso al micrófono de tu dispositivo. El navegador convierte temporalmente tu voz en texto y ese texto se envía a nuestros proveedores de traducción y voz para generar la respuesta. <strong>No almacenamos archivos de voz grabados permanentemente en nuestros servidores.</strong>
                         </p>
                     </div>
 
@@ -156,7 +156,7 @@
                     Para ofrecer la máxima calidad en interpretación y tecnología de voz, iChat utiliza servicios seguros de proveedores confiables:
                 </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
                         <div class="text-blue-400 font-bold mb-1 flex items-center gap-2">
                             <i class="fa-solid fa-fire text-amber-500"></i> Firebase Auth
@@ -168,7 +168,14 @@
                         <div class="text-purple-400 font-bold mb-1 flex items-center gap-2">
                             <i class="fa-solid fa-brain text-purple-400"></i> OpenAI API
                         </div>
-                        <p class="text-xs text-slate-400">Procesa las solicitudes de traducción lingüística contextual y síntesis de voz con voz natural HD.</p>
+                        <p class="text-xs text-slate-400">Procesa las solicitudes de traducción lingüística contextual.</p>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+                        <div class="text-pink-400 font-bold mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-volume-high text-pink-400"></i> ElevenLabs
+                        </div>
+                        <p class="text-xs text-slate-400">Genera el audio traducido con voz sintética natural. Si no está disponible, se utiliza la voz del navegador.</p>
                     </div>
 
                     <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
